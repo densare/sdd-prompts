@@ -98,7 +98,7 @@ Antes de adicionar seguranca, responder: "Qual e a ameaca concreta? Quem atacari
 | AP-02 | Seguranca desproporcional | AES-256 para window positions | PLAN, IMPLEMENT |
 | AP-03 | Security theater | [Authorize] sem middleware que enforce | IMPLEMENT, CHECK |
 | AP-04 | Duplicacao sistematica | Mesma logica copiada em 4 modulos | SPECIFY, PLAN |
-| AP-05 | God objects | Ficheiros com 700+ LOC | IMPLEMENT, CHECK |
+| AP-05 | God objects | Ficheiros que excedem limites LOC | IMPLEMENT, CHECK |
 | AP-06 | Codigo na camada errada | SQL em ViewModels, UI em Domain | PLAN, IMPLEMENT |
 | AP-07 | Dead code | Stubs vazios, features fantasma | IMPLEMENT, CHECK |
 | AP-08 | Multiplos padroes | 5 formas de fazer a mesma coisa | PLAN, IMPLEMENT |

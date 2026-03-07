@@ -85,13 +85,13 @@ Antes de adicionar seguranca, responder: "Qual e a ameaca concreta? Quem atacari
 
 ## Limites Concretos de Codigo
 
-| Metrica | Go | Templ | C# | Se exceder |
-|---------|----|-----------|----|-----------|
-| LOC por ficheiro | 300 | 200 (template) | 300 | PARAR, split |
-| LOC por funcao/metodo | 30 | 30 | 30 | PARAR, split |
-| Funcoes exportadas por package | 15 | - | 15 (publicos) | PARAR, split |
-| Parametros por funcao | 5 | 5 | 5 | Considerar struct/options |
-| Interfaces com 1 impl | 0 | - | 0 | Justificar ou remover |
+| Metrica | Go / C# | Templ | Se exceder |
+|---------|---------|-------|-----------|
+| LOC por ficheiro | < 500 / 500-600 / > 600 | < 200 | congelar / split |
+| LOC por funcao/metodo | < 45 / 45-55 / > 55 | < 45 | congelar / split |
+| Funcoes exportadas por package | 15 | - | PARAR, split |
+| Parametros por funcao | 5 | 5 | Considerar struct/options |
+| Interfaces com 1 impl | 0 | - | Justificar ou remover |
 
 **Excepcoes aceites para interfaces 1:1**: boundary de teste (repository -> mock) ou boundary de sistema (API externa -> trocar provider). Documentar justificacao.
 
@@ -107,7 +107,7 @@ Antes de adicionar seguranca, responder: "Qual e a ameaca concreta? Quem atacari
 | AP-02 | Seguranca desproporcional | AES-256 para window positions | PLAN, IMPLEMENT |
 | AP-03 | Security theater | [Authorize] sem middleware que enforce | IMPLEMENT, CHECK |
 | AP-04 | Duplicacao sistematica | Mesma logica copiada em 4 modulos | SPECIFY, PLAN |
-| AP-05 | God objects | Ficheiros com 700+ LOC | IMPLEMENT, CHECK |
+| AP-05 | God objects | Ficheiros que excedem limites LOC | IMPLEMENT, CHECK |
 | AP-06 | Codigo na camada errada | SQL em handlers, UI em domain | PLAN, IMPLEMENT |
 | AP-07 | Dead code | Stubs vazios, features fantasma | IMPLEMENT, CHECK |
 | AP-08 | Multiplos padroes | 5 formas de fazer a mesma coisa | PLAN, IMPLEMENT |
@@ -251,7 +251,7 @@ Models/             -> DTOs publicos
 
 **Limites de Complexidade**
 - [ ] Ficheiros na zona verde (< 500 LOC)? (AP-05)
-- [ ] Nenhuma funcao planeada excede 30 LOC? (AP-05)
+- [ ] Funcoes/metodos na zona verde (< 45 LOC)? (AP-05)
 - [ ] Zero stubs ou "implementar depois"? (AP-07)
 
 ---
@@ -271,7 +271,7 @@ OBRIGATORIO antes de implementar:
 
 **Estrutura (AP-05: God Objects)**
 - [ ] Package tem UMA responsabilidade clara?
-- [ ] Funcoes com mais de 30 linhas? -> PARAR, split obrigatorio
+- [ ] Funcoes/metodos > 55 LOC (zona vermelha)? -> PARAR, split obrigatorio
 - [ ] Ficheiro > 600 LOC (zona vermelha)? -> PARAR, split obrigatório
 
 **Interfaces (AP-01: Interfaces 1:1)**
@@ -387,7 +387,7 @@ OBRIGATORIO antes de verificar:
 
 **Limites de Complexidade (AP-05)**
 - [ ] Ficheiros: 🟢 < 500 | 🟡 500-600 (congelado) | 🔴 > 600 (split)?
-- [ ] Nenhuma funcao > 30 LOC?
+- [ ] Funcoes/metodos na zona verde (< 45 LOC)?
 - [ ] Nenhum package > 15 funcoes exportadas?
 
 **Testes**
@@ -484,7 +484,7 @@ SE o teste:
 4. BLOQUEAR se interface com 1 implementacao sem justificacao (AP-01)
 5. BLOQUEAR se SQL nao parametrizado
 6. BLOQUEAR se segredos hardcoded
-7. BLOQUEAR se ficheiro > 300 LOC (AP-05)
+7. BLOQUEAR se ficheiro > 600 LOC ou template > 200 LOC (AP-05)
 8. BLOQUEAR se seguranca sem enforcement (AP-03)
 9. Alertar se handler tem logica de negocio (AP-06)
 10. Verificar que testes existem
@@ -563,7 +563,7 @@ REPROVADO (nao mover):
 | Metrica | Target | Red Flag | Anti-Pattern |
 |---------|--------|----------|-------------|
 | LOC por ficheiro | < 500 🟢 | > 600 🔴 | AP-05 |
-| LOC por funcao | < 30 | > 30 | AP-05 |
+| LOC por funcao/metodo | < 45 | > 55 | AP-05 |
 | Funcoes por package | < 15 exportadas | > 15 | AP-05 |
 | Parametros por funcao | < 5 | > 5 | - |
 | Camada correta | 100% | SQL em handler | AP-06 |

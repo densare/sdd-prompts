@@ -219,21 +219,22 @@ O agente adiciona funcionalidade incrementalmente ao mesmo ficheiro/classe. "Ja 
 ```
 Limites CONCRETOS (sistema de zonas):
 
-FICHEIROS:
+FICHEIROS (C#, Go, qualquer linguagem):
 - 🟢 VERDE (< 500 LOC): Livre para desenvolver
 - 🟡 AMARELA (500-600 LOC): Congelado - só bug fixes, sem novas funções
 - 🔴 VERMELHA (> 600 LOC): Obrigatório refatorar antes de merge
 
-MÉTODOS/FUNÇÕES:
+MÉTODOS/FUNÇÕES (C#, Go, qualquer linguagem):
 - 🟢 VERDE (< 45 LOC): Livre para desenvolver
 - 🟡 AMARELA (45-55 LOC): Congelado - só bug fixes, sem nova lógica
 - 🔴 VERMELHA (> 55 LOC): Obrigatório refatorar antes de merge
 
-PACKAGES (Go):
-- Package > 15 funcoes exportadas -> Considerar split
+TEMPLATES (Templ, SvelteKit, Avalonia AXAML):
+- Template/Componente > 200 LOC -> Extrair sub-componentes/templates
 
-COMPONENTES (SvelteKit/Templ):
-- Componente/Template > 200 LOC -> Extrair sub-componentes/templates
+PACKAGES/NAMESPACES:
+- Package (Go) > 15 funcoes exportadas -> Considerar split
+- Classe (C#) > 15 metodos publicos -> Considerar split
 
 Nota: Na zona amarela, se precisares de adicionar funcionalidade,
 primeiro extrai código para baixar para zona verde.
@@ -384,7 +385,7 @@ Antes de QUALQUER implementacao, o agente deve responder:
 [ ] INTERFACE: "Esta interface tem 2+ implementacoes concretas?"
 [ ] CAMADA: "Este codigo esta na camada correcta?"
 [ ] DUPLICACAO: "Estou a copiar codigo que ja existe noutro sitio?"
-[ ] LOC: "Este ficheiro (< 500 LOC) e funcao (< 45 LOC) esta na zona verde?"
+[ ] LOC: "Este ficheiro (< 500 LOC) e funcao (< 45 LOC) esta na zona verde? Template < 200 LOC?"
 [ ] PADRAO: "Estou a usar o mesmo padrao que o resto do projecto?"
 [ ] SEGURANCA: "Esta medida de seguranca tem enforcement real?"
 [ ] DEAD CODE: "Tudo o que criei e usado e funciona?"
