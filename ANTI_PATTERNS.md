@@ -232,9 +232,10 @@ MÉTODOS/FUNÇÕES (C#, Go, qualquer linguagem):
 TEMPLATES (Templ, SvelteKit, Avalonia AXAML):
 - Template/Componente > 200 LOC -> Extrair sub-componentes/templates
 
-PACKAGES/NAMESPACES:
-- Package (Go) > 15 funcoes exportadas -> Considerar split
-- Classe (C#) > 15 metodos publicos -> Considerar split
+PACKAGES/NAMESPACES (funcoes exportadas / metodos publicos):
+- 🟢 VERDE (< 30): Livre para desenvolver
+- 🟡 AMARELA (30-45): Considerar split se continuar a crescer
+- 🔴 VERMELHA (> 45): Split obrigatorio antes de merge
 
 Nota: Na zona amarela, se precisares de adicionar funcionalidade,
 primeiro extrai código para baixar para zona verde.
@@ -385,7 +386,7 @@ Antes de QUALQUER implementacao, o agente deve responder:
 [ ] INTERFACE: "Esta interface tem 2+ implementacoes concretas?"
 [ ] CAMADA: "Este codigo esta na camada correcta?"
 [ ] DUPLICACAO: "Estou a copiar codigo que ja existe noutro sitio?"
-[ ] LOC: "Este ficheiro (< 500 LOC) e funcao (< 45 LOC) esta na zona verde? Template < 200 LOC?"
+[ ] LOC: "Este ficheiro (< 500 LOC), funcao (< 45 LOC) e package (< 30 exports) esta na zona verde? Template < 200 LOC?"
 [ ] PADRAO: "Estou a usar o mesmo padrao que o resto do projecto?"
 [ ] SEGURANCA: "Esta medida de seguranca tem enforcement real?"
 [ ] DEAD CODE: "Tudo o que criei e usado e funciona?"
