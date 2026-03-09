@@ -51,9 +51,13 @@ Issues are tracked in **Linear** (project management tool). To query issues:
    git checkout main && git pull origin main
    git checkout -b feature/[ISSUE-ID]
    ```
-   All implementation work MUST happen on this branch.
-3. **READ** complete spec.md and plan.md
-4. **IMPLEMENT** step by step according to the plan, using **RED/GREEN/VERIFY** for each requirement:
+   All implementation work MUST happen on this branch. Verify you are on the branch before writing any code (`git branch --show-current`).
+3. **UPDATE LINEAR** — Move the issue to **In Progress**. This signals to the team that work is underway. Do NOT skip this step.
+   - MCP: use the update issue tool to set state to "In Progress"
+   - GraphQL: `mutation { issueUpdate(id: "<UUID>", input: { stateId: "<IN_PROGRESS_STATE_ID>" }) { success } }`
+   - Query team states first if you do not know the state ID
+4. **READ** complete spec.md and plan.md
+5. **IMPLEMENT** step by step according to the plan, using **RED/GREEN/VERIFY** for each requirement:
 
    For each RF-XX in the spec:
    ```
@@ -73,7 +77,7 @@ Issues are tracked in **Linear** (project management tool). To query issues:
 
    > **Exception**: For pure UI/presentation work (Views, AXAML layouts) where automated testing is impractical, skip RED/GREEN and implement directly. Still run VERIFY (build + existing tests) after each step.
 
-5. **QUALITY GATE** during implementation:
+6. **QUALITY GATE** during implementation:
    - Single Responsibility
    - Reuse existing code as planned
    - Tests written alongside code
@@ -82,7 +86,7 @@ Issues are tracked in **Linear** (project management tool). To query issues:
    - **Abstractions**: Only with 2+ implementations (AP-01)
    - **Patterns**: Same pattern as rest of project (AP-08)
    - **Dead code**: Zero stubs, placeholders, or empty scaffolds (AP-07)
-6. **SELF-CHECK** after each step:
+7. **SELF-CHECK** after each step:
    ```
    [ ] Did I search for existing code before creating? (AP-04)
    [ ] Is complexity proportional to the problem? (AP-02)
@@ -91,8 +95,14 @@ Issues are tracked in **Linear** (project management tool). To query issues:
    [ ] No unnecessary abstractions? (AP-01)
    [ ] Does security have real enforcement? (AP-03)
    ```
-7. **INFORM** progress after each step
-8. **UPDATE** `sdd/CHANGELOG.md` at the end
+8. **INFORM** progress after each step
+9. **UPDATE** `sdd/CHANGELOG.md` at the end
+10. **COMMIT** — Stage and commit all changes on the feature branch:
+   ```bash
+   git add -A
+   git commit -m "[ISSUE-ID]: <short description of what was implemented>"
+   ```
+   This is MANDATORY. Every implementation session MUST end with a local commit on the feature branch. Do NOT push — that is END-ISSUE.
 
 ## Rules
 
@@ -106,17 +116,15 @@ Issues are tracked in **Linear** (project management tool). To query issues:
 
 ## Out of Scope — NEVER DO in this phase
 
-- **NEVER** run `git commit` — commits are the responsibility of the human developer, not the AI agent
-- **NEVER** run `git add` — staging is also the developer's responsibility
 - **NEVER** push to remote (that is END-ISSUE step 4)
 - **NEVER** create a PR (that is END-ISSUE step 5)
 - **NEVER** merge anything (that is END-ISSUE step 6)
-- **NEVER** mark the Linear issue as Done or update its status (that is END-ISSUE step 7)
+- **NEVER** mark the Linear issue as Done (that is END-ISSUE). Moving to In Progress at the START is mandatory (step 3)
 - **NEVER** close or comment on GitHub Issues
 - **NEVER** run `/sdd-check` or `/sdd-end-issue` — those are separate phases
 - **NEVER** delete branches
 
-**This phase ONLY writes and modifies files.** No git operations beyond the initial branch creation (step 1). The human developer decides when and what to commit. The workflow continues with CHECK, then END-ISSUE.
+**This phase writes code, commits locally, and updates Linear to In Progress.** Branch creation (step 2), Linear update (step 3), and local commit (step 10) are the ONLY git/Linear operations allowed. Do NOT push, create PRs, or mark issues as Done. The workflow continues with CHECK, then END-ISSUE.
 
 ## Red Flags — STOP IMMEDIATELY if:
 
@@ -133,4 +141,4 @@ Issues are tracked in **Linear** (project management tool). To query issues:
 
 ## Output
 
-Code implemented according to plan. CHANGELOG updated. Ready for CHECK phase.
+Code implemented according to plan, committed on feature branch, Linear issue In Progress. Ready for CHECK phase.
