@@ -151,6 +151,12 @@ OBRIGATORIO antes de especificar:
 - [ ] Toca 2+ repositorios? (se sim, PARTIR em sub-tasks por repositorio)
 - [ ] Dependencias cross-module preenchidas na spec?
 
+**Provider Abstraction (apps [APP]/[ADMIN]/[SDK])**
+- [ ] A app consome servicos externos (auth, payment, email, storage)?
+- [ ] Se sim: acesso via interface (nao import directo do provider)?
+- [ ] Provider seleccionavel por env var?
+- [ ] App funciona com provider alternativo (standalone, Clerk, Stripe directo)?
+
 **Perguntas Preventivas**
 ```
 1. "Existe servico/package no projecto que ja faca isto?" (AP-04)
@@ -237,6 +243,12 @@ Models/             -> DTOs publicos
 - [ ] Cada interface nova tem 2+ implementacoes previstas?
 - [ ] Se so 1 implementacao -> usar struct directa (sem interface)
 - [ ] Excepcao documentada? (boundary de teste ou de sistema)
+
+**Provider Abstraction (apps [APP]/[ADMIN]/[SDK])**
+- [ ] Servicos externos consumidos via interface? (ver CLAUDE.md "Provider Abstraction")
+- [ ] Providers em packages separados (`providers/densare/`, `providers/stripe/`, etc.)?
+- [ ] Seleccao por env var (AUTH_PROVIDER, PAY_PROVIDER, EMAIL_PROVIDER)?
+- [ ] App vendavel standalone sem plataforma Densare?
 
 **Padroes (AP-08: Multiplos Padroes)**
 - [ ] Verificou que padrao o projecto ja usa para este problema?

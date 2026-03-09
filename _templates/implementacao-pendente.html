@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Implementação Pendente — {PRODUTO} {VERSAO}</title>
+<style>
+  @page { margin: 1.5cm; }
+  @media print { body { font-size: 10pt; } .no-print { display: none; } }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; max-width: 780px; margin: 2em auto; color: #1a1a1a; line-height: 1.4; }
+  h1 { font-size: 1.2em; border-bottom: 2px solid #111; padding-bottom: .3em; margin-bottom: .1em; }
+  .date { color: #666; font-size: .8em; margin-bottom: 1.8em; }
+  h2 { font-size: 1em; margin: 1.6em 0 .4em; padding: 3px 8px; background: #f5f5f5; border-left: 3px solid #333; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: .3em; font-size: .85em; }
+  th { text-align: left; background: #e8e8e8; font-weight: 600; font-size: .8em; text-transform: uppercase; letter-spacing: .3px; }
+  th, td { padding: 4px 8px; border: 1px solid #ccc; }
+  tr.done { background: #f0fdf4; color: #666; }
+  tr.done td { text-decoration: line-through; text-decoration-color: #aaa; }
+  tr.done td:last-child { text-decoration: none; }
+  .check { color: #16a34a; font-weight: 700; }
+  .blocked { color: #b91c1c; font-weight: 600; font-size: .8em; }
+  .dep { color: #7c3aed; font-size: .8em; }
+  .par { color: #0369a1; font-size: .8em; }
+  .pts { text-align: center; }
+  .note { font-size: .78em; color: #555; margin: .2em 0 1.2em; padding-left: 12px; border-left: 2px solid #ddd; }
+  .totals { font-size: .85em; margin-top: 2em; padding-top: .8em; border-top: 2px solid #111; }
+  .totals td { font-weight: 600; }
+  .legend { font-size: .75em; color: #666; margin-top: 1.5em; }
+  .legend span { display: inline-block; margin-right: 1.2em; }
+  .section-total { font-size: .78em; color: #555; float: right; font-weight: normal; }
+</style>
+</head>
+<body>
+
+<h1>Implementação Pendente — {PRODUTO} {VERSAO}</h1>
+<div class="date">{DATA} · Issues Linear por ordem de implementação</div>
+
+<!--
+  INSTRUÇÕES DE USO:
+
+  1. Substituir placeholders: {PRODUTO}, {VERSAO}, {DATA}
+  2. Copiar um bloco <h2>...</h2> + <table>...</table> + <div class="note"> por cada request
+  3. Numerar os requests pela ordem de implementação sugerida
+  4. Preencher a tabela com os issues Linear do issues.md de cada request
+
+  REGRAS:
+  - Uma secção por request em em-implementação/
+  - Issues ordenados conforme o plan.md (ondas / passos)
+  - Usar "Onda" na 1ª coluna quando há paralelismo, "Ordem" quando sequencial
+  - Marcar issues Done com class="done" no <tr> e class="check" no estado
+  - Marcar dependências intra-request com class="dep" e ← {ISSUE}
+  - Marcar paralelismo com class="par" e ∥ {ISSUE}
+  - Marcar bloqueios cross-request com class="blocked" e ⛔ Aguarda {REQUEST}
+  - Nota breve abaixo de cada tabela com o grafo resumido
+  - Actualizar totais no final
+-->
+
+<!-- ============================================================ -->
+<!-- REQUEST 1 -->
+<h2>1. {ID} — {TITULO} <span class="section-total">{PROJECTO} · {N} pts · {N} issues</span></h2>
+<table>
+  <tr><th>Ordem</th><th>Issue</th><th class="pts">Pts</th><th>Dependências</th><th>Estado</th></tr>
+  <!-- Issue sem dependências -->
+  <tr><td>1</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td>—</td><td></td></tr>
+  <!-- Issue com dependência -->
+  <tr><td>2</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td class="dep">← {PREFIX}-{NUM}</td><td></td></tr>
+  <!-- Issues paralelos (usar Onda na 1ª coluna) -->
+  <!-- <tr><td>1</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td>—</td><td></td></tr> -->
+  <!-- <tr><td>1</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td><span class="par">∥ {PREFIX}-{NUM}</span></td><td></td></tr> -->
+  <!-- Issue Done -->
+  <!-- <tr class="done"><td>1</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td>—</td><td class="check">Done</td></tr> -->
+  <!-- Issue bloqueado por outro request -->
+  <!-- <tr><td>1</td><td>{PREFIX}-{NUM}</td><td class="pts">{PTS}</td><td class="blocked">⛔ Aguarda {REQUEST} ({ISSUES})</td><td></td></tr> -->
+</table>
+<div class="note">{Grafo resumido: A→B→C ou A∥B→C}</div>
+
+<!-- ============================================================ -->
+<!-- REQUEST 2 — copiar bloco acima e preencher -->
+
+<!-- ============================================================ -->
+<!-- TOTAIS -->
+<table class="totals">
+  <tr><td>Total</td><td>{N} issues</td><td>{N} pontos</td><td>{N} Done · {N} Backlog · {N} Bloqueado</td></tr>
+</table>
+
+<div class="legend">
+  <strong>Legenda:</strong>
+  <span><span class="check">✓</span> Done</span>
+  <span><span class="dep">←</span> Depende de</span>
+  <span><span class="par">∥</span> Paralelo</span>
+  <span><span class="blocked">⛔</span> Bloqueado cross-request</span>
+</div>
+
+</body>
+</html>
