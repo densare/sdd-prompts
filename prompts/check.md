@@ -98,6 +98,14 @@ How to ensure independence:
 - [ ] Tests verify OUTPUT, not internal state?
 - [ ] Test scenarios are realistic?
 
+### Manual Smoke Tests — operator-driven verification
+> Required when `plan.md` §"Planned tests" lists smoke tests (which it MUST when observable behavior is in scope).
+- [ ] Read `plan.md` §"Planned tests" → "Manual smoke tests" list.
+- [ ] If the list is non-empty: **STOP and ask the operator** to run each smoke and confirm pass/fail before producing the report. Include a literal prompt such as: *"Please run the manual smoke tests from plan.md and report results before I produce the check report. Reply with each smoke # + PASS/FAIL + observations."*
+- [ ] If any smoke fails: include it in `Requirements Verification` table as FAIL with the smoke description + observation. Verdict = REJECTED until fixed.
+- [ ] If the smoke list is empty AND the issue body has observable acceptance criteria (e.g., "lista mostra X", "painel abre Y"): flag as **plan deficiency** in `Spec Deviations`. Verdict may still be APPROVED if the implementer adds smokes post-hoc and re-checks, OR the operator confirms acceptance criteria via ad-hoc smoke; reviewer documents which.
+- [ ] Reviewer must NOT run the smokes themselves (they may not have access to UI / runtime environment). The operator is the source of truth for "did it actually work in the running app".
+
 5. **PRODUCE** structured report with **mandatory tables** (PASS/FAIL per criterion):
 
 ```markdown
