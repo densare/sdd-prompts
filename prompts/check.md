@@ -112,30 +112,50 @@ How to ensure independence:
   - **STOP** and derive smokes from the acceptance criteria yourself, then proceed to Step 2 (do NOT skip smoke gate just because plan is incomplete).
 - [ ] If both empty (no smokes planned AND no observable acceptance criteria — e.g., pure refactor with unit-test coverage): document as "Smoke: N/A (no observable behavior)" in the report and skip to anti-patterns.
 
-#### Step 2 — Present the smoke list to the operator as a table of numbered steps
+#### Step 2 — Present the smoke list to the operator as numbered step-by-step recipes (one per smoke)
 
-- [ ] **STOP all further verification work.** Before producing the check report, ask the operator to run the smokes. Present them as a **table where each row is one smoke and the "Passos" column contains numbered step-by-step instructions** (action + expected outcome inline). Use `<br>` for line breaks inside table cells.
+- [ ] **STOP all further verification work.** Before producing the check report, ask the operator to run the smokes. Present each smoke as a **separate block with a bold heading and a vertical numbered list** (one step per line). Do NOT use a markdown table with line-break trickery (`<br>` inside cells does not render line breaks in most terminal markdown renderers — steps collapse into a paragraph).
 
 ##### Format template (mandatory)
 
 ```markdown
-Run the following smoke tests in the running app and reply with PASS/FAIL per row + observations.
-Each row is a separate scenario — test them individually, not as a batch.
+Run the following smoke tests in the running app and reply with PASS/FAIL per smoke + observations.
+Each block is a separate scenario — test them individually, not as a batch.
 
-| # | Smoke | Passos |
-|---|---|---|
-| 1 | **<field or flow name>** | 1) <setup action, e.g. "Importar process1.dtz"><br>2) <navigate, e.g. "Abrir painel Envolvente"><br>3) <interact, e.g. "Duplo-clicar uma parede"><br>4) <change, e.g. "Tab Geometria → Orientation → Norte"><br>5) <commit, e.g. "Clicar OK"><br>6) **Deves ver** <observable outcome, e.g. "`Az: Norte` na linha da parede"> |
-| 2 | ... | ... |
+---
+
+**Smoke 1 — <field or flow name>**
+
+1. <setup action, e.g. "Importar `process1.dtz`">
+2. <navigate, e.g. "Abrir painel Envolvente">
+3. <interact, e.g. "Duplo-clicar uma parede">
+4. <change, e.g. "Tab **Geometria** → dropdown Orientation → escolher **Norte**">
+5. <commit, e.g. "Clicar **OK**">
+6. **Deves ver** <observable outcome, e.g. "`Az: Norte` na linha da parede">
+
+---
+
+**Smoke 2 — <next field/flow>**
+
+1. ...
+
+---
 ```
 
-##### Authoring rules for the "Passos" column
+##### Authoring rules
 
-- **Numbered** (1), 2), 3) ...) — operator can follow line-by-line.
+- **Numbered list** (`1.`, `2.`, ...) — one step per line. Renders correctly in terminals and browsers without `<br>` hacks.
+- Use `---` horizontal rule between smokes for visual separation.
 - Each step is an **action** (open / click / type / select) **OR** the final **expected observation** (always prefixed with `**Deves ver**` or equivalent in the project's language).
-- The expected observation is **the last step**, never a separate cell or sentence outside the steps.
-- Steps must be **concrete**: name the file, tab, control, value. Avoid generic phrasings like "edit the field" — say "Tab Geometria → dropdown Orientation → escolher Norte".
-- Each smoke row MUST be **per-field or per-flow**, not generic. Generic smokes ("edit element + OK") can mask field-specific gaps. If the change touches 4 fields, the table has 4 rows.
-- Include the test data context in step 1 (e.g., "Importar `process1.dtz`" or "Abrir projecto com PEN + ENU").
+- The expected observation is **the last numbered step**, not a separate paragraph.
+- Steps must be **concrete**: name the file, tab, control, value. Avoid generic phrasings ("edit the field") — say "Tab Geometria → dropdown Orientation → escolher Norte".
+- Each smoke MUST be **per-field or per-flow**, not generic. Generic smokes ("edit element + OK") can mask field-specific gaps. If the change touches 4 fields, present 4 smokes.
+- Include the test data context in step 1 of the first smoke (e.g., "Importar `process1.dtz`" or "Abrir projecto com PEN + ENU"). Subsequent smokes can assume the same project is open.
+- End the message with a single line asking for the response format: e.g. `Responde **PASS/FAIL** por smoke + observações. Verdict em hold.`
+
+##### Why no table
+
+Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitHub markdown viewer with default CSS, plain-text logs). Even when `<br>` works in HTML output, it doesn't in plain markdown rendering. Numbered lists work universally. The verdict gate is operator readability — if the operator can't follow the steps line-by-line, the smoke is harder to execute correctly.
 
 #### Step 3 — Verdict based on smoke results
 
