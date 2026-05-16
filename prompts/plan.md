@@ -17,7 +17,39 @@ Read or have access to:
 
 ## Arguments
 
-Format: `<project> <ID>` — see AGENTS.md for available projects.
+Two formats accepted, one per Mode (see §Modes below):
+
+- **Mode A (request planning):** `<project> <request-id>` — e.g. `dentherm DT-G2`. `<request-id>` is the folder name in `projectos/<project>/requests/`.
+- **Mode B (issue planning):** `<ISSUE-ID>` — e.g. `DT-589`. Linear issue ID directly.
+
+See AGENTS.md for available projects.
+
+## Modes
+
+`/sdd-plan` runs in one of two **mutually-exclusive modes**. Choose before any audit/spec read.
+
+### Mode A — Request planning (multi-issue, plan lives in planning repo)
+
+- **Trigger:** approved `spec.md` in `planning/aec/projectos/<project>/requests/aprovados/<request-id>/`.
+- **Plan path:** `planning/aec/projectos/<project>/requests/em-implementacao/<request-id>/plan.md` (planning repo, **NOT** code repo).
+- **Linear:** **creates** N issues + writes `issues.md` with implementation order.
+- **Folder move:** `aprovados/` → `em-implementacao/` at the end.
+- **Typical scope:** 8–40 pt, multi-component, multiple PRs.
+- **Estimate:** estimated **here** per issue created.
+
+### Mode B — Issue planning (single-issue, plan lives in code repo)
+
+- **Trigger:** an existing Linear issue (created via `/sdd-check` deferral, UX review, bug report, follow-up) whose body already contains acceptance criteria.
+- **Plan path:** `<code-repo>/docs/issues/<ISSUE-ID>/plan.md` (code repo, near the feature branch).
+- **Linear:** **does NOT create** issues — only sets the existing issue's state to `In Progress` and (optionally) attaches the plan link.
+- **No `issues.md`, no folder move.**
+- **Typical scope:** 1–5 pt, single component, one PR.
+- **Estimate:** **do not re-estimate** — the issue already has an estimate set at creation. Plan respects it; if the audit reveals the estimate is wrong, surface that in the audit section but do not silently change the Linear field.
+- **Audit Gate 2 inversion:** Linear body did not go through formal `/sdd-specify` approval — audit may legitimately reveal the assumption is wrong/incomplete. When that happens, **document the inversion explicitly** in `plan.md §Audit` + commit message + CHANGELOG (e.g., DT-589 Option A → C4 in `densare/dentherm`).
+
+### Centralised record
+
+This file (`prompts/plan.md` in `densare/sdd-prompts/master`) is the **canonical source** for the mode split. Each consumer repo links to it from `AGENTS.md §SDD Discipline` via the raw URL — propagation is automatic, no per-repo deploy. Repos currently consuming: dentherm, denstudio, densim, denbridge, denretrofit, densolar, denlight.
 
 ## Linear Access
 
@@ -28,17 +60,19 @@ Issues are tracked in **Linear** (project management tool). To create/query issu
 
 ## Locate the Spec
 
-Search for `spec.md` in `projectos/<project>/requests/` (in order):
+**Mode A (request):** Search for `spec.md` in `projectos/<project>/requests/` (in order):
 1. `aprovados/<ID>-*/spec.md`
 2. `em-analise/<ID>-*/spec.md`
 3. `em-implementacao/<ID>-*/spec.md`
 4. If not found, inform that spec must be created first
 
+**Mode B (issue):** No separate `spec.md`. The **Linear issue body** plays the role of the spec — fetch it via MCP/GraphQL (§Linear Access). Treat the issue's "Acceptance criteria" / "Fix proposto" sections as the requirements list. If the body lacks acceptance criteria, stop and ask for them to be added in Linear before planning.
+
 ## Pre-conditions
 
-- Verify that `spec.md` exists and has state SPECIFIED (approved)
-- If state DRAFT, inform that spec needs approval first
-- If cross-module dependencies exist: check they are PLANNED or IMPLEMENTED
+- **Mode A:** `spec.md` exists and has state SPECIFIED (approved). If DRAFT, inform that spec needs approval first.
+- **Mode B:** Linear issue exists, is in `Backlog` or `Todo` state (not `In Progress`/`Done`), and has acceptance criteria in the body.
+- If cross-module dependencies exist: check they are PLANNED or IMPLEMENTED.
 
 ## Behavior
 
@@ -72,7 +106,9 @@ Search for `spec.md` in `projectos/<project>/requests/` (in order):
    - Cross-module dependencies satisfied?
 8. **ESTIMATE** using Fibonacci scale:
    - 1 = ~30min | 2 = ~1h | 3 = ~2h | 5 = ~4h | 8 = ~8h
-   - >= 13 points: MANDATORY to split
+   - **Mode A:** estimate each created issue.
+   - **Mode B:** **DO NOT re-estimate** — the issue already carries an estimate from creation time. Only surface a mismatch in the audit section (e.g., "audit revealed scope is closer to 2pt than the 1pt on the issue"); do not silently mutate the Linear `estimate` field.
+   - >= 13 points: MANDATORY to split (Mode A only — in Mode B, if audit shows the issue is ≥13pt, raise it and stop; do not split unilaterally).
 9. **CREATE** `plan.md` with:
    - Target repository
    - Architecture decisions (with justification)
@@ -90,21 +126,27 @@ Search for `spec.md` in `projectos/<project>/requests/` (in order):
    - Cross-module dependencies
    - Total estimate in points
 10. **ASK** for confirmation to mark as PLANNED
-11. **CREATE LINEAR ISSUE(S)** (issues are tracked in Linear — the project management tool):
-    - Title, description, estimate, labels
-    - Record issue ID (e.g., DT-48, DS-366) in plan.md
-12. **CREATE `issues.md`** with table of Linear issues and implementation order
-13. **MOVE** request folder to `em-implementacao/`
-14. **UPDATE** `projectos/<project>/requests/README.md`
+11. **LINEAR — diverges by mode:**
+    - **Mode A:** CREATE LINEAR ISSUE(S). Title, description, estimate, labels. Record issue IDs in plan.md.
+    - **Mode B:** issue already exists. Set state → `In Progress`. Do NOT create new issues unless audit splits the scope (rare; ask first).
+12. **Mode A only:** CREATE `issues.md` with table of Linear issues and implementation order.
+13. **Mode A only:** MOVE request folder to `em-implementacao/`.
+14. **Mode A only:** UPDATE `projectos/<project>/requests/README.md`.
 
 ## Planning vs Implementation Separation
 
-> **This repository is for PLANNING.** Implementation is done in the code repository.
+The split depends on mode:
 
-The flow here ends with creating the Linear issue:
-```
-AUDIT -> SPECIFY -> PLAN -> Linear issue -> END (handoff)
-```
+- **Mode A** lives entirely in the **planning repo** until handoff:
+  ```
+  AUDIT -> SPECIFY -> PLAN (in planning repo) -> Linear issues -> END (handoff to code repo via /sdd-implement)
+  ```
+- **Mode B** lives in the **code repo** from the start (the issue itself is the spec; the plan is a development artifact near the branch):
+  ```
+  Linear issue (pre-existing) -> PLAN (in code repo docs/issues/<ID>/) -> /sdd-implement -> /sdd-check -> /sdd-end-issue
+  ```
+
+In both modes, this prompt **does not write production code** — only plan and document.
 
 ## Rules
 
@@ -133,4 +175,5 @@ AUDIT -> SPECIFY -> PLAN -> Linear issue -> END (handoff)
 
 ## Output
 
-Folder in `em-implementacao/` with `request.md` + `spec.md` + `plan.md` + `issues.md`. Linear issues created.
+- **Mode A:** folder in `planning/aec/projectos/<project>/requests/em-implementacao/<request-id>/` with `request.md` + `spec.md` + `plan.md` + `issues.md`. Linear issues **created**.
+- **Mode B:** single file `<code-repo>/docs/issues/<ISSUE-ID>/plan.md`. Linear issue **state → In Progress** (existing issue, no new ones created).
