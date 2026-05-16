@@ -80,7 +80,11 @@ Search for `spec.md` in `projectos/<project>/requests/` (in order):
    - Existing packages/modules to reuse
    - Ordered steps (following project's layer order from AGENTS.md)
    - **Dependency graph with parallelization** — for each step, identify what it depends on and what can run in parallel (enables simultaneous work on repos A/B)
-   - Planned tests
+   - **Planned tests** — enumerate by category:
+     - **Unit / integration tests** (mechanically coverable): list each scenario + assertion. These are run by CI and `/sdd-check` build/test gate.
+     - **Manual smoke tests** (must enumerate when UI, integration, runtime, or observable behavior is in scope): each smoke is `prerequisite + steps + expected observation + what it validates`. Enumerate **per affected field / per acceptance criterion** — never write generic "edit X → OK → verify" without specifying which fields/scenarios. Scope strictly to THIS issue; do NOT include regression smokes for previously merged issues.
+     - **Explicit exclusions** — fields/scenarios deliberately NOT tested in this issue, with justification (e.g., "derived value, no persistence path" / "schema gap deferred to follow-up issue / "covered by separate test fixture X")
+     - If acceptance criteria reference observable behavior (e.g., "lista mostra X", "painel abre Y", "valor persiste após reload") and no manual smoke is enumerated, the plan is **incomplete** — `/sdd-check` will reject it.
    - Anti-patterns verified section
    - **Risks and rollback plan** — identify implementation risks with probability/impact/mitigation, and document how to revert if the implementation fails (branch strategy, critical files affected, data reversibility)
    - Cross-module dependencies

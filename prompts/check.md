@@ -98,6 +98,48 @@ How to ensure independence:
 - [ ] Tests verify OUTPUT, not internal state?
 - [ ] Test scenarios are realistic?
 
+### Manual Smoke Tests — operator-driven verification (MANDATORY GATE)
+
+> **Smoke is part of `/sdd-check`, NOT `/sdd-end-issue`.** Acceptance must be confirmed here before APPROVED verdict. `/sdd-end-issue` is purely close-out machinery (push/PR/merge/Linear) and assumes acceptance was already validated.
+>
+> **Anti-pattern observed in practice:** deferring smoke as "deferral #1 → part of end-issue checklist". Result: smoke fails during end-issue → STOP/REJECT/restart cycle (e.g., DT-576, DT-577). Correct workflow: smoke during check, end-issue mechanical.
+
+#### Step 1 — Locate the smoke list
+
+- [ ] Read `plan.md` §"Planned tests" → "Manual smoke tests" / "Smoke manual" list.
+- [ ] If the list is **empty** AND the issue body has observable acceptance criteria (e.g., "lista mostra X", "painel abre Y", "edit field → value persists"):
+  - This is a **plan deficiency**. Flag in `Spec Deviations`.
+  - **STOP** and derive smokes from the acceptance criteria yourself, then proceed to Step 2 (do NOT skip smoke gate just because plan is incomplete).
+- [ ] If both empty (no smokes planned AND no observable acceptance criteria — e.g., pure refactor with unit-test coverage): document as "Smoke: N/A (no observable behavior)" in the report and skip to anti-patterns.
+
+#### Step 2 — Present the smoke list to the operator as a clear table
+
+- [ ] **STOP all further verification work.** Before producing the check report, ask the operator to run the smokes. Present them in a table:
+
+  ```
+  Please run the following smoke tests in the running app and reply with PASS/FAIL per row.
+  Each row is a separate scenario — test them individually, not as a batch.
+
+  | # | Field / Flow | Action in dialog/UI | Expected result in list/panel |
+  |---|---|---|---|
+  | 1 | <field name> | <click/type/select> | <observable outcome> |
+  | 2 | ... | ... | ... |
+  ```
+
+- [ ] Each smoke row MUST be **per-field or per-flow**, not generic. Generic smokes (e.g., "edit element + OK") can mask field-specific gaps. If the change touches 4 fields, the table has 4 rows.
+- [ ] Include the test data context (e.g., "Importar `process1.dtz`" or "Projecto com PEN + ENU").
+
+#### Step 3 — Verdict based on smoke results
+
+- [ ] If **any** smoke fails: include it in `Requirements Verification` as **FAIL** with description + operator observation. **Verdict = REJECTED.** Implementer must `/sdd-fix`.
+- [ ] If **all** smokes pass: incorporate as PASS rows in `Requirements Verification` and proceed to APPROVED / APPROVED WITH DEFERRALS based on the rest of the checklist.
+- [ ] **Never** mark smoke as "deferral #1 → operator verifies during end-issue". Smoke is gate, not deferral. The Deferrals table is for **post-merge follow-ups** (new Linear issues), not for "the operator hasn't tested yet".
+
+#### Step 4 — Reviewer role boundary
+
+- [ ] Reviewer must NOT run smokes themselves (no UI/runtime access). Operator is the source of truth for "did it actually work in the running app".
+- [ ] Reviewer must NOT proceed to verdict (APPROVED/REJECTED) without smoke confirmation. Polling once is enough — wait for operator reply, do not assume.
+
 5. **PRODUCE** structured report with **mandatory tables** (PASS/FAIL per criterion):
 
 ```markdown

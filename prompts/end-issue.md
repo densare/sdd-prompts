@@ -47,8 +47,31 @@ IF check-report.md verdict is REJECTED:
 IF check-report.md verdict is APPROVED or APPROVED WITH DEFERRALS:
   → IF APPROVED WITH DEFERRALS: verify that EVERY deferral in the Deferrals table has a Linear issue ID.
     If any deferral is missing a Linear issue → STOP: "Deferrals must have Linear issues before merge."
+  → Continue to "Pre-condition: Smoke Tests Confirmed" below.
+```
+
+## Pre-condition: Smoke Tests Confirmed
+
+Manual smoke tests are operator-driven (the AI agent cannot drive a UI / runtime). Even if `/sdd-check` documented smokes as passed, the operator must **explicitly re-confirm** before merge — smoke results can change between check time and end-issue time (e.g., rebase brought new changes, environment drift).
+
+**ASK the operator EXPLICITLY** (do not assume; do not skip even if `check-report.md` says they passed):
+
+> *"All manual smoke tests from `plan.md` §Planned tests passed without errors? Reply with: each smoke # + PASS/FAIL + observations. If `plan.md` has no smoke list, confirm that no observable acceptance criterion requires manual verification."*
+
+```
+IF operator answers anything other than unambiguous PASS for every smoke:
+  → STOP: "Smoke tests not confirmed (or failures reported). Fix failures, update plan.md if scope changed, and re-run /sdd-check before /sdd-end-issue."
+
+IF plan.md has no manual smoke tests AND the issue body has observable acceptance criteria
+   (e.g., "lista mostra X", "painel abre Y", "valor persiste após reload"):
+  → STOP: "Plan deficiency — observable acceptance criteria require enumerated manual smoke tests.
+            Update plan.md, run smokes, then re-run /sdd-check before /sdd-end-issue."
+
+IF operator confirms PASS for all smokes (or plan has no smokes AND no observable criteria):
   → Continue with end-issue steps.
 ```
+
+This gate is **mandatory** and cannot be skipped. A merge without operator smoke confirmation is treated as an incomplete end-issue.
 
 ## Steps
 
@@ -173,6 +196,7 @@ git push origin --delete feature/[ISSUE-ID]
 
 Before reporting completion to the user, confirm ALL of these:
 
+- [ ] **Manual smoke tests confirmed PASS by operator** (Pre-condition: Smoke Tests Confirmed)
 - [ ] Commit exists with hash
 - [ ] **Push was executed** (code is on the remote)
 - [ ] **PR was created** and URL was obtained
