@@ -43,6 +43,44 @@
 
 ---
 
+## Entry-Points (AP-09)
+
+> **Obrigatorio para features observaveis pelo utilizador / cliente externo.**
+> Se a feature e puramente interna (helper, refactor, package partilhado sem observabilidade externa): escrever "N/A — feature nao observavel externamente" e justificar.
+
+Listar TODOS os caminhos que tornam esta feature acessivel em runtime. Sem entry-point declarado, a feature e invisivel ao utilizador apesar de "implementada" — vira issue nova depois do merge.
+
+| Entry-Point | Tipo | Localizacao | Estado actual |
+|-------------|------|-------------|---------------|
+| [ex: Menu "Relatorios -> Caderno"] | Menu | `DenThermUIProvider.Menus.cs:194` | A criar / A modificar / Ja existe |
+| [ex: Nav node "Envolvente -> Pontes Termicas"] | NavTree | `Navigation.cs` | A criar |
+| [ex: Keybinding Ctrl+R] | Atalho | `MainWindow.axaml` | A criar |
+| [ex: POST /v1/links] | HTTP route | `cmd/2snip/main.go` router | A criar |
+| [ex: hx-get="/dashboard/widget"] | HTMX partial | `templates/pages/dashboard.templ` | A criar |
+
+**Smoke navegavel mandatorio**: descrever em 1 frase o caminho que valida acesso a partir de estado inicial (app fresca / deploy limpo). Esta frase vai virar smoke obrigatorio em `/sdd-check`.
+
+> Exemplo: "Abrir app, click menu Relatorios -> Caderno -> tab Folha A renderiza com dados do processo aberto."
+
+---
+
+## Storage Semantics (AP-10)
+
+> **Obrigatorio para features que persistem state.** Se a feature nao persiste nada (puramente computational, view-only): escrever "N/A — sem persistencia" e saltar.
+
+Para CADA campo persistido tocado por esta feature, declarar a forma canonica armazenada e as conversoes em cada path. Forma canonica divergente entre paths e a causa principal de bugs em cadeia (DT-572..578).
+
+| Campo | Forma canonica armazenada | Write paths e conversao | Read path |
+|-------|---------------------------|-------------------------|-----------|
+| [ex: U-value opaco] | aggravated (× 1.35 ja aplicado) | Import: aggrava antes de gravar. Mass-update: via OpaqueElementUValueService. Dialog edit: chama AggravateU() antes de Save. | Nenhuma — ler como esta |
+| [ex: Name elemento] | display synthesized | Import: synthesizer.Resolve(code). Dialog: read-only (gerado). | Nenhuma |
+
+**Helper centralizado**: se 2+ paths escrevem no mesmo campo, deve existir UM helper que aplica a conversao canonical. Nomear de forma que torne a semantics visivel (`ApplyEnvelopeItemToOpaqueElement_storesAggregatedU`, ou comentario unico no helper).
+
+**Mudanca de semantics canonical**: se esta feature ALTERA a forma canonical existente de um campo: ALERTA explicito + plano de migracao (script de migration, backfill, deprecation path).
+
+---
+
 ## Requisitos Nao-Funcionais
 
 ### RNF-01: Performance
@@ -96,6 +134,17 @@
 | EC-01 | [Cenario limite] | [Como o sistema deve reagir] |
 | EC-02 | [Erro de input] | [Mensagem ou comportamento] |
 | EC-03 | [Servico dependente indisponivel] | [Fallback ou erro] |
+
+### Edge Cases Obrigatorios (features com persistencia) — AP-10
+
+> Se a feature persiste state, estes 4 edge cases sao obrigatorios. Remover apenas com justificacao explicita ("nao aplicavel porque..."). Eliminam por construcao a cadeia DT-572..578.
+
+| # | Cenario | Comportamento Esperado |
+|---|---------|------------------------|
+| EC-RT1 | **No-op edit**: abrir dialog/form da entidade + OK sem alterar campo nenhum | ZERO mudancas em storage. Todos os campos preservados byte-a-byte. |
+| EC-RT2 | **Round-trip**: save -> reabrir projecto -> save sem alteracoes | Output idempotente. Diff = vazio. |
+| EC-RT3 | **Import vs novo**: importar legacy + criar novo do zero da app | Mesma estrutura armazenada para o mesmo input semantico. |
+| EC-RT4 | **Mass-update sobre item importado**: alterar campo X em N items via mass-update | Forma canonical de campos NAO tocados (ex: U-value) preservada do path de import. |
 
 ---
 
@@ -153,6 +202,14 @@
 - Novo servico/package necessario? [Sim/Nao] - Justificacao: [...]
 - Nova interface necessaria? [Sim/Nao] - Quantas impl previstas: [...]
 - Risco de over-engineering? [Baixo/Medio/Alto] - Mitigacao: [...]
+
+### Entry-Points e Storage (AP-09, AP-10)
+- [ ] Seccao "Entry-Points" preenchida com TODOS os caminhos do user ate a feature, OU marcada N/A com justificacao (feature puramente interna)
+- [ ] Smoke navegavel descrito em 1 frase (vai virar smoke obrigatorio em /sdd-check)
+- [ ] Para cada campo persistido: forma canonica armazenada declarada na seccao "Storage Semantics"
+- [ ] Para cada path de escrita: conversao para forma canonica documentada
+- [ ] Se a feature persiste state: 4 edge cases obrigatorios (EC-RT1..RT4) presentes ou justificadamente removidos
+- [ ] Se altera semantics canonical de campo ja existente: plano de migracao documentado
 
 ---
 

@@ -82,6 +82,32 @@
 
 ---
 
+## Wiring de Entry-Points (AP-09)
+
+> Para CADA entry-point declarado na seccao "Entry-Points" da spec, indicar o ficheiro de wiring tocado neste plano. Se a spec declara entry-points mas este plano nao toca nenhum ficheiro de wiring -> plano incompleto.
+
+| Entry-Point (da spec) | Ficheiro de wiring | Linha aproximada | Tipo de mudanca |
+|-----------------------|--------------------|-----------------:|-----------------|
+| [ex: Menu "Relatorios -> Caderno"] | `DenThermUIProvider.Menus.cs` | ~194 | Adicionar TabDefinition |
+| [ex: Nav node "PTL"] | `Navigation.cs` | ~80 | Novo nav node debaixo de "Envolvente" |
+| [ex: Route POST /v1/links] | `cmd/2snip/main.go` | router setup | `r.Post("/v1/links", h.Create)` |
+
+---
+
+## Helpers de Storage Canonical (AP-10)
+
+> Para CADA campo persistido com 2+ write paths declarado na seccao "Storage Semantics" da spec, indicar o helper centralizado. Se a spec declara 2+ write paths mas este plano nao planeia helper centralizado -> plano incompleto.
+
+| Campo | Helper centralizado | Localizacao | Conversao aplicada |
+|-------|---------------------|-------------|---------------------|
+| [ex: U-value opaco] | `OpaqueElementUValueService.ApplyAggravation` | `Application/Services/` | base * 1.35 quando AggravateU=true |
+| [ex: Subscription period] | `extendSubscriptionPeriod` | `internal/payment/service_webhook.go` | ledger-based credit/carry |
+
+Helpers a reutilizar (ja existem):
+- [helper] em [path] — usado para [campo]
+
+---
+
 ## Passos de Implementacao
 
 ### Passo 1: [Nome do Passo]
@@ -114,6 +140,23 @@
 
 ---
 
+### Passo Final (OBRIGATORIO): Wire Entry-Points + Smoke Navegavel (AP-09)
+
+**Objetivo**: Garantir que a feature e acessivel ao utilizador/cliente externo a partir do estado inicial. Sem este passo, o resto do plano produz codigo invisivel — AP-09.
+
+**Acoes**:
+1. [ ] Wire de TODOS os entry-points listados na seccao "Wiring de Entry-Points" acima
+2. [ ] Run navigable smoke do estado inicial ate a feature, conforme spec
+3. [ ] Confirmar que o smoke passa SEM ler codigo (so seguindo a UI/cliente)
+
+**Validacao**:
+- [ ] Smoke navegavel da spec executado e a passar
+- [ ] Cada entry-point produz UX/comportamento esperado
+
+> Se a feature e puramente interna (spec marcou Entry-Points: N/A com justificacao), este passo pode ser omitido — documentar a omissao explicitamente.
+
+---
+
 ## Testes
 
 ### Testes Unitarios
@@ -132,6 +175,26 @@
 | JWT invalido | Retorna 401 |
 | Rate limit excedido | Retorna 429 |
 | Input malicioso | Retorna 400 |
+
+### Testes Round-Trip / Storage (AP-10)
+
+> Obrigatorios para features que persistem state. Eliminam por construcao a classe DT-572..578.
+
+| Teste | Descricao |
+|-------|-----------|
+| `Test_NoOpEdit_PreservesAllFields` | Abrir entidade + Save sem alterar nada -> 100% dos campos preservados |
+| `Test_RoundTrip_SaveReopenSaveIsIdempotent` | Save -> reload -> Save -> diff == empty |
+| `Test_ImportVsNew_ProduceSameStored` | Importar legacy + criar novo do zero -> stored estructuralmente igual |
+| `Test_MassUpdate_PreservesUntouchedFieldSemantics` | Mass-update em campo X sobre item importado -> campo Y (nao tocado) preserva forma canonica do path import |
+| `Test_CanonicalForm_Per_WritePath` | Para CADA write path declarado em Storage Semantics, assert que stored value respeita a forma canonica declarada |
+
+### Smoke Manual Navegavel (AP-09)
+
+> Obrigatorio para features observaveis pelo utilizador / cliente externo. Replicar o "smoke navegavel" da seccao Entry-Points da spec.
+
+| # | Smoke | Pre-requisito | Passos (1 por linha) | Resultado esperado |
+|---|-------|---------------|----------------------|--------------------|
+| Smoke-1 | [Acesso via menu] | App fresca | 1. Abrir app. 2. Click menu X. 3. Click sub-item Y. | Painel Z renderiza com [dados] |
 
 ---
 
@@ -191,6 +254,18 @@ Passo 1 ──> Passo 2 ──> Passo 3
 - [ ] Input validation planeada nos handlers?
 - [ ] SQL parametrizado planeado nas queries?
 - [ ] Segredos via env vars?
+
+### Verificacao de Entry-Points (AP-09)
+- [ ] Para CADA entry-point da spec, ha ficheiro de wiring listado na seccao "Wiring de Entry-Points"
+- [ ] Existe "Passo Final: Wire Entry-Points + Smoke Navegavel" na ordem de implementacao
+- [ ] Smoke navegavel da spec esta enumerado nos testes manuais
+- [ ] Se feature e puramente interna (Entry-Points: N/A na spec): omissao do passo final esta justificada
+
+### Verificacao de Storage Semantics (AP-10)
+- [ ] Para CADA campo persistido com 2+ write paths (da seccao "Storage Semantics" da spec), helper centralizado planeado
+- [ ] Helpers reutilizam codigo existente quando possivel (AP-04)
+- [ ] Testes round-trip (no-op edit, save->reload, import-vs-new, mass-update) presentes na seccao Testes
+- [ ] Se feature nao persiste state (spec marcou Storage: N/A): omissao justificada
 
 ---
 

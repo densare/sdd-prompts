@@ -53,15 +53,31 @@ Search for the request file in `projectos/<project>/requests/` (in order):
    - Unconsidered edge cases
    - Technical dependencies
    - Cross-module dependencies
-8. **QUALITY GATE** — Apply SPECIFY checklist:
+8. **DECLARE ENTRY-POINTS** (AP-09):
+   - Is this feature observable by the user / external client (UI, HTTP route, message subscriber)?
+   - If yes: enumerate ALL paths the user/client uses to reach the feature in the spec's "Entry-Points" section (menu item, nav node, keybinding, HTTP route, hx- attribute target, event subscriber). For each entry-point: type, location (file:line if known), and whether it already exists or must be created/modified.
+   - Write the **1-line navigable smoke**: the path from fresh app/deploy state to the feature. This becomes a mandatory smoke at `/sdd-check`.
+   - If feature is purely internal (helper, refactor, shared package) with no external observability: mark "Entry-Points: N/A" and justify in 1 line.
+   - If spec adds RFs observable by user but `Entry-Points` table is empty → spec is incomplete; do NOT mark SPECIFIED.
+9. **DECLARE STORAGE SEMANTICS** (AP-10):
+   - Does the feature persist state (DB, file, settings, in-memory survives reload)?
+   - If yes: for EACH persisted field touched, fill the spec's "Storage Semantics" table with `field | canonical stored form | conversion in each write path | conversion in read path`.
+   - If 2+ write paths exist for the same field: a single centralized helper must be planned (name it explicitly).
+   - If the feature CHANGES the canonical form of an existing field: ALERT, require migration plan.
+   - Add the 4 mandatory round-trip edge cases (EC-RT1..RT4: no-op edit, save→reopen→save, import-vs-new, mass-update preserves untouched fields) unless any is justifiably N/A.
+   - If feature persists state but `Storage Semantics` table is empty → spec is incomplete; do NOT mark SPECIFIED.
+10. **QUALITY GATE** — Apply SPECIFY checklist:
    - Does task do ONE thing?
    - Does similar code exist? (AP-04)
    - Is there premature generalization? (AP-01)
    - Doesn't mix multiple responsibilities?
    - Is security proportional to data type? (AP-02)
    - Cross-module dependencies identified and documented?
-9. **CLARIFY** with user if necessary
-10. **ASK** for confirmation to mark as SPECIFIED
+   - Entry-points enumerated for every user-observable RF? (AP-09)
+   - Storage semantics declared for every persisted field? (AP-10)
+   - Round-trip edge cases (EC-RT1..RT4) present or justifiably absent? (AP-10)
+11. **CLARIFY** with user if necessary
+12. **ASK** for confirmation to mark as SPECIFIED
 
 ## Rules
 
@@ -71,6 +87,9 @@ Search for the request file in `projectos/<project>/requests/` (in order):
 - Keep `request.md` original UNCHANGED
 - If task touches 2+ repositories: MANDATORY to split into sub-tasks
 - If task depends on non-existent functionality in another module: ALERT
+- If feature is user-observable but `Entry-Points` section is empty: BLOCK (AP-09)
+- If feature persists state but `Storage Semantics` section is empty: BLOCK (AP-10)
+- The navigable smoke (1 line under Entry-Points) IS the seed of the manual smoke that `/sdd-check` will demand. Write it as if the reviewer will execute it without reading code.
 
 ## Output
 

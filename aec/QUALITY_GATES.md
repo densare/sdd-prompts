@@ -102,6 +102,8 @@ Antes de adicionar seguranca, responder: "Qual e a ameaca concreta? Quem atacari
 | AP-06 | Codigo na camada errada | SQL em ViewModels, UI em Domain | PLAN, IMPLEMENT |
 | AP-07 | Dead code | Stubs vazios, features fantasma | IMPLEMENT, CHECK |
 | AP-08 | Multiplos padroes | 5 formas de fazer a mesma coisa | PLAN, IMPLEMENT |
+| AP-09 | Infrastructure-only sem entry-point | Painel/dialog/service implementado mas zero menu/nav/keybinding chama (DT-549, 550, 554, 555, 565, 591) | SPECIFY, PLAN, CHECK |
+| AP-10 | Storage semantics inconsistency | Mesmo campo (ex: U-value) com forma canonica divergente entre paths (DT-572..578) | SPECIFY, PLAN, CHECK |
 
 ---
 
@@ -138,6 +140,21 @@ OBRIGATORIO antes de especificar:
 - [ ] Request esta no modulo correcto? (se nao, mover ou referenciar)
 - [ ] Precisa de funcionalidade de outro modulo? (se sim, documentar dependencia)
 - [ ] Toca 2+ repositorios? (se sim, PARTIR em sub-tasks)
+
+**Entry-Points UI (AP-09)**
+- [ ] Feature e observavel pelo utilizador final (UI, dialog, panel, menu)?
+- [ ] Se sim: seccao "Entry-Points" da spec preenchida com TODOS os caminhos (menu, nav node, keybinding, evento)?
+- [ ] Smoke navegavel descrito em 1 frase (vai virar smoke obrigatorio em /sdd-check)?
+- [ ] Se feature e puramente interna (helper, refactor, package): marcado "N/A" com justificacao?
+- **BLOQUEAR** se spec adiciona RFs observaveis mas Entry-Points esta vazio
+
+**Storage Semantics (AP-10)**
+- [ ] Feature persiste state em modelo de dominio (Process, Fraccao, Element, Solution, etc.)?
+- [ ] Se sim: cada campo persistido tocado tem forma canonica declarada + conversao por path?
+- [ ] Para campos com 2+ write paths: helper centralizado nomeado (ex: `OpaqueElementUValueService`)?
+- [ ] Se altera semantics canonical de campo existente: plano de migracao documentado?
+- [ ] 4 edge cases obrigatorios (EC-RT1..RT4) presentes? (no-op edit, save->reload, import-vs-new, mass-update preserva nao-tocados)
+- **BLOQUEAR** se spec persiste state mas Storage Semantics esta vazio
 
 ---
 
@@ -195,6 +212,17 @@ Infrastructure -> Repositories, EF Core, External APIs (I/O)
 - [ ] Métodos na zona verde (< 45 LOC)? (AP-05)
 - [ ] Zero stubs ou "implementar depois"? (AP-07)
 
+**Wiring de Entry-Points (AP-09)**
+- [ ] Para CADA entry-point da spec ha ficheiro de wiring listado (Navigation.cs, MenuProvider, KeyBinding, evento subscriber)?
+- [ ] Ordem de implementacao termina com "Passo Final: Wire Entry-Points + Smoke Navegavel"?
+- [ ] Smoke navegavel da spec esta enumerado nos Smoke Manual do plano?
+- **BLOQUEAR** se spec declara entry-points mas plano nao toca nenhum ficheiro de wiring
+
+**Helpers de Storage (AP-10)**
+- [ ] Para campos persistidos com 2+ write paths: helper centralizado planeado (novo ou reutilizado)?
+- [ ] Testes round-trip presentes (no-op edit, save->reload, import-vs-new, mass-update)?
+- **BLOQUEAR** se spec declara 2+ write paths mas plano nao planeia helper centralizado
+
 ---
 
 ## Gate 3: IMPLEMENT - Prevencao de Code Smells
@@ -248,6 +276,9 @@ OBRIGATORIO antes de implementar:
 | Encriptacao de dados nao-sensiveis | AP-02 | Remover, simplificar |
 | Stub/NotImplemented | AP-07 | Implementar ou nao criar |
 | Padrao novo para problema ja resolvido | AP-08 | Usar padrao existente |
+| Painel/dialog implementado sem entrada no menu/nav | AP-09 | Wire entry-point antes de fechar issue |
+| 2+ paths gravam o mesmo campo sem helper centralizado | AP-10 | Extrair helper + aplicar em todos os paths |
+| No-op edit altera valores stored | AP-10 | Investigar storage semantics; canonical form divergente |
 
 ---
 
@@ -294,6 +325,18 @@ OBRIGATORIO antes de verificar:
 - [ ] Tudo o que foi criado e usado?
 - [ ] Nenhum event handler para eventos que nao existem?
 
+**Entry-Points Acessiveis (AP-09)**
+- [ ] Smoke navegavel da spec executado a partir de estado inicial (app fresca)?
+- [ ] Reviewer chega a feature SEM ler codigo?
+- [ ] Cada entry-point da spec produz o comportamento esperado?
+- **REJECT** se feature so e acessivel via codigo / teste / direct method invocation
+
+**Storage Round-Trip (AP-10)**
+- [ ] Smoke "no-op edit" executado: abrir entidade + Save sem alterar nada -> ZERO mudancas?
+- [ ] Smoke round-trip: save -> reload -> save idempotente?
+- [ ] Para campos persistidos: stored value respeita forma canonical declarada na spec em TODOS os write paths?
+- **REJECT** se algum path escreve forma divergente da canonica declarada
+
 **Limites de Complexidade (AP-05)**
 - [ ] Ficheiros: 🟢 < 500 | 🟡 500-600 (congelado) | 🔴 > 600 (split)?
 - [ ] Métodos: 🟢 < 45 | 🟡 45-55 (congelado) | 🔴 > 55 (split)?
@@ -303,6 +346,7 @@ OBRIGATORIO antes de verificar:
 - [ ] Testes cobrem os requisitos da spec?
 - [ ] Testes verificam OUTPUT, nao estado interno?
 - [ ] Cenarios testados sao REALISTAS?
+- [ ] Testes round-trip presentes para features com persistencia? (AP-10)
 
 **Retrospetiva**
 ```
@@ -452,7 +496,9 @@ REPROVADO (nao mover):
 | Interfaces com 1 impl | 0 (sem excepcao documentada) | > 0 | AP-01 |
 | Padroes por problema | 1 | > 1 | AP-08 |
 | Dead code / stubs | 0 | > 0 | AP-07 |
+| Features observaveis sem entry-point wired | 0 | > 0 | AP-09 |
+| Campos persistidos com 2+ write paths sem helper centralizado | 0 | > 0 | AP-10 |
 
 ---
 
-*Densare AEC SDD - Fevereiro 2026*
+*Densare AEC SDD - Fevereiro 2026 (rev. Maio 2026: AP-09 e AP-10 adicionados apos cadeia DT-547..589)*

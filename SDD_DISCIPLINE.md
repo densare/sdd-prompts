@@ -52,7 +52,7 @@ Classifying an edge case as *"pequena janela visual"* / *"small UX issue"* / *"u
 
 ## Related
 
-- [`ANTI_PATTERNS.md`](./ANTI_PATTERNS.md) — 8 anti-patterns to avoid in code (mandatory reading before any SDD phase).
+- [`ANTI_PATTERNS.md`](./ANTI_PATTERNS.md) — 10 anti-patterns to avoid in code (mandatory reading before any SDD phase). AP-09 (infrastructure-only without entry-point) and AP-10 (storage semantics inconsistency) added in 2026-05 after the DT-547..589 and PLT-205/207/281 chains.
 - [`aec/QUALITY_GATES.md`](./aec/QUALITY_GATES.md) / [`cloud/QUALITY_GATES.md`](./cloud/QUALITY_GATES.md) — quality gates by phase.
 - [`prompts/check.md`](./prompts/check.md) — the `/sdd-check` prompt itself (this file complements it with operational discipline).
 

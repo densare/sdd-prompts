@@ -111,6 +111,8 @@ Antes de adicionar seguranca, responder: "Qual e a ameaca concreta? Quem atacari
 | AP-06 | Codigo na camada errada | SQL em handlers, UI em domain | PLAN, IMPLEMENT |
 | AP-07 | Dead code | Stubs vazios, features fantasma | IMPLEMENT, CHECK |
 | AP-08 | Multiplos padroes | 5 formas de fazer a mesma coisa | PLAN, IMPLEMENT |
+| AP-09 | Infrastructure-only sem entry-point | Handler/service implementado mas route nunca montada em main.go (PLT-281); hx-target sem hx-get correspondente | SPECIFY, PLAN, CHECK |
+| AP-10 | Storage semantics inconsistency | JSON contract drift entre packages (PLT-205 `apiMRRResponse`, PLT-207 `apiUser` vs `UserDTO`); event_type values inconsistentes (PLT-220) | SPECIFY, PLAN, CHECK |
 
 > Para exemplos detalhados com codigo real de cada categoria, consultar `sdd/ANTI_PATTERNS.md`.
 
@@ -171,6 +173,23 @@ OBRIGATORIO antes de especificar:
 - "Encriptar/proteger/auditar..." sem threat model concreto (AP-02)
 - Requisito que mistura API publica + logica + dados na mesma task
 - Seguranca pedida sem identificar a ameaca concreta (AP-03)
+- Spec adiciona endpoint/feature observavel mas seccao `Entry-Points` vazia (AP-09)
+- Spec persiste state (campo em DB/Redis/JSON contract entre packages) mas seccao `Storage Semantics` vazia (AP-10)
+
+**Entry-Points (AP-09)**
+- [ ] Feature observavel por cliente externo (HTTP, HTMX swap, message subscriber)?
+- [ ] Se sim: seccao `Entry-Points` da spec lista TODAS as routes/hx-targets/subscribers com ficheiro main.go ou router setup?
+- [ ] Smoke navegavel descrito (curl/HTMX call que valida acesso a partir de deploy fresco)?
+- [ ] Provider abstraction: route exposta via env var matters? (auth provider, payment provider)
+- **BLOQUEAR** se spec adiciona endpoint/UI observavel mas Entry-Points esta vazio
+
+**Storage Semantics (AP-10)**
+- [ ] Feature persiste state em DB, Redis, JSON contract entre services, ou ficheiro?
+- [ ] Para cada campo persistido: forma canonical declarada + conversao em cada write path?
+- [ ] Para JSON contracts cross-package: tipo partilhado em `pkg/` (evitar drift PLT-205 / PLT-207)?
+- [ ] Migration necessaria se altera semantics existente?
+- [ ] 4 edge cases obrigatorios (EC-RT1..RT4) presentes? (no-op edit, save->reload, import-vs-new equivalente, update preserva nao-tocados)
+- **BLOQUEAR** se spec persiste state mas Storage Semantics esta vazio
 
 ---
 
@@ -266,6 +285,18 @@ Models/             -> DTOs publicos
 - [ ] Funcoes/metodos na zona verde (< 45 LOC)? (AP-05)
 - [ ] Zero stubs ou "implementar depois"? (AP-07)
 
+**Wiring de Entry-Points (AP-09)**
+- [ ] Para CADA route/endpoint/hx-target da spec ha mudanca planeada em `cmd/<service>/main.go` (router setup) ou template (hx-get/post)?
+- [ ] Ordem de implementacao termina com "Passo Final: Wire Routes + Smoke E2E" (curl/HTMX call ou Postman)?
+- [ ] Middleware necessaria (JWT, rate limit, internal token) wired no router?
+- **BLOQUEAR** se spec declara endpoints mas plano nao toca main.go / router
+
+**Helpers de Storage / JSON Contracts (AP-10)**
+- [ ] Para campos com 2+ write paths: helper centralizado planeado?
+- [ ] Para JSON contracts cross-package: tipo em `pkg/<service>api/` partilhado (nao file-local em 2 packages)?
+- [ ] Testes round-trip presentes (contract test cross-service, regression guard)?
+- **BLOQUEAR** se 2+ packages definem o mesmo struct localmente (replica PLT-205/207)
+
 ---
 
 ## Gate 3: IMPLEMENT - Prevencao de Code Smells
@@ -343,6 +374,9 @@ OBRIGATORIO antes de implementar:
 | Padrao novo para problema ja resolvido | AP-08 | Usar padrao existente |
 | Fetch directo em componente | AP-06 | Mover para lib/api/ |
 | Sanitizer redundante com queries parametrizadas | AP-03 | Remover sanitizer |
+| Handler implementado sem route montada em main.go | AP-09 | Wire route + smoke E2E antes de fechar issue |
+| 2+ packages com mesma struct para JSON contract | AP-10 | Extrair para `pkg/<service>api/` |
+| Webhook/event handler sem subscriber wired | AP-09 | Registar subscriber em composition root |
 
 ---
 
@@ -396,6 +430,18 @@ OBRIGATORIO antes de verificar:
 - [ ] Zero stubs ou NotImplementedException?
 - [ ] Tudo o que foi criado e usado?
 - [ ] Nenhum event handler para eventos que nao existem?
+
+**Entry-Points Wired (AP-09)**
+- [ ] Smoke E2E executado a partir de deploy fresco (curl ou HTMX call real)?
+- [ ] Todas as routes da spec retornam 2xx/4xx esperado (nao 404)?
+- [ ] Middleware encadeada correctamente (JWT + rate limit + handler)?
+- **REJECT** se algum endpoint da spec retorna 404 em runtime (handler implementado mas route nao montada — PLT-281)
+
+**Storage Round-Trip / JSON Contracts (AP-10)**
+- [ ] Para cada campo persistido: stored value respeita forma canonical declarada em TODOS os write paths?
+- [ ] JSON contract entre services validado por contract test (regression guard)?
+- [ ] Sem `apiX` file-local em 2 packages para o mesmo recurso?
+- **REJECT** se contract drift entre services (replica PLT-205/207) ou se write path quebra forma canonical
 
 **Limites de Complexidade (AP-05)**
 - [ ] Ficheiros: 🟢 < 500 | 🟡 500-600 (congelado) | 🔴 > 600 (split)?
@@ -476,6 +522,8 @@ SE o teste:
 7. Alertar se spec mistura responsabilidades
 8. Verificar proporcionalidade de seguranca (AP-02)
 9. Identificar repositorio destino
+10. **ENTRY-POINTS**: Preencher seccao Entry-Points com TODAS as routes/hx-targets/subscribers ou marcar N/A com justificacao (AP-09)
+11. **STORAGE SEMANTICS**: Para cada campo persistido / JSON contract cross-package, preencher tabela canonical form + write paths (AP-10)
 
 ### Durante /plan
 1. **LER** `sdd/ANTI_PATTERNS.md`
@@ -488,6 +536,9 @@ SE o teste:
 8. Definir padroes e verificar consistencia com projecto (AP-08)
 9. Verificar limites LOC planeados (AP-05)
 10. Preencher seccao "Dependencias Cross-Module" no plan.md
+11. **WIRING**: Para cada entry-point da spec, listar ficheiro de wiring (router setup, hx-target endpoint, subscriber registration) (AP-09)
+12. **HELPERS**: Para cada campo com 2+ write paths, nomear helper centralizado ou tipo partilhado em `pkg/<svc>api/` (AP-10)
+13. **PASSO FINAL OBRIGATORIO**: Ordem de implementacao termina com "Wire Routes + Smoke E2E" — sem este passo, BLOQUEAR plano
 
 ### Durante /implement
 1. **LER** `sdd/ANTI_PATTERNS.md` — ter perguntas de auto-verificacao presentes
@@ -582,6 +633,8 @@ REPROVADO (nao mover):
 | Interfaces com 1 impl | 0 (sem excepcao documentada) | > 0 | AP-01 |
 | Padroes por problema | 1 | > 1 | AP-08 |
 | Dead code / stubs | 0 | > 0 | AP-07 |
+| Routes/endpoints da spec retornando 404 em runtime | 0 | > 0 | AP-09 |
+| JSON contracts cross-package duplicados | 0 | > 0 | AP-10 |
 
 ### Seguranca
 
@@ -605,4 +658,4 @@ REPROVADO (nao mover):
 
 ---
 
-*Densare Cloud SDD - Fevereiro 2026*
+*Densare Cloud SDD - Fevereiro 2026 (rev. Maio 2026: AP-09 e AP-10 adicionados apos cadeia PLT-205/207/281)*

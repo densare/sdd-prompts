@@ -104,6 +104,9 @@ Issues are tracked in **Linear** (project management tool). To create/query issu
    - No planned file > 600 LOC? (AP-05)
    - Zero stubs? (AP-07)
    - Cross-module dependencies satisfied?
+   - **Entry-points wired** (AP-09): for EACH entry-point declared in spec, a corresponding file is in "Files to modify" (Navigation.cs, cmd/<svc>/main.go router setup, layout templ, MenuProvider, etc.). If spec declares entry-points but plan does not modify any wiring file → BLOCK.
+   - **Storage helpers centralized** (AP-10): for EACH persisted field with 2+ write paths in spec, a centralized helper is planned (or referenced if already exists). The plan names which helper and the conversion it applies.
+   - **Last implementation step = wire + navigable smoke**: the implementation order MUST end with a step explicitly named "wire entry-points and run navigable smoke" (or equivalent). This is the seam that catches AP-09 before merge. If the ordered steps end at "create file X" or "implement service Y" without a final wire+smoke step → BLOCK.
 8. **ESTIMATE** using Fibonacci scale:
    - 1 = ~30min | 2 = ~1h | 3 = ~2h | 5 = ~4h | 8 = ~8h
    - **Mode A:** estimate each created issue.
@@ -155,6 +158,9 @@ In both modes, this prompt **does not write production code** — only plan and 
 - **BLOCK** duplicating existing code (AP-04)
 - **BLOCK** abstraction with 1 implementation without justification (AP-01)
 - **BLOCK** planned file > 600 LOC (AP-05)
+- **BLOCK** spec declares entry-points but plan does not wire them (AP-09)
+- **BLOCK** spec declares persisted field with 2+ write paths but plan has no centralized helper (AP-10)
+- **BLOCK** implementation order that does not end with "wire entry-points + navigable smoke"
 - >= 13 points: MANDATORY to split
 
 ## issues.md Template
