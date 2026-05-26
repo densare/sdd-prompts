@@ -20,7 +20,27 @@ You MUST actually open and read each file below. "Having access to" is NOT enoug
 
 ## Arguments
 
-Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
+Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier). Implementation is always per-issue; the **mode** (below) only changes *where* the plan and spec live.
+
+## Modes
+
+`/sdd-implement` mirrors the two **mutually-exclusive modes** of `/sdd-plan` (canonical: `prompts/plan.md`). Detect the mode from **where `/sdd-plan` wrote the plan**:
+
+### Mode A — Request planning (plan lives in planning repo)
+
+- **Plan path:** `planning/aec/projectos/<project>/requests/em-implementacao/<request-id>/plan.md`.
+- **Spec:** `spec.md` exists **in the same folder** and is REQUIRED.
+- Located via the `issues.md` that lists `[ISSUE-ID]` (see §Locate).
+
+### Mode B — Issue planning (plan lives in code repo)
+
+- **Plan path:** `<code-repo>/docs/issues/<ISSUE-ID>/plan.md`.
+- **Spec:** there is **no `spec.md`** and none is required — the **Linear issue body is the spec** (its "Acceptance criteria" / "Scope" sections are the requirements list). Do **NOT** search the planning repo in this mode.
+- **Trigger:** the issue was created via `/sdd-check` deferral, UX review, bug report, or follow-up.
+
+### Centralised record
+
+This file (`prompts/implement.md` in `densare/sdd-prompts/master`) is the **canonical source** for the mode split. Each consumer repo links to it from `AGENTS.md §SDD` via the raw URL — propagation is automatic, no per-repo deploy.
 
 ## Linear Access
 
@@ -31,16 +51,18 @@ Issues are tracked in **Linear** (project management tool). To query issues:
 
 ## Locate Issue, Spec and Plan
 
-1. **QUERY LINEAR** for `[ISSUE-ID]` to get: title, description, status, labels, and any linked information
-2. **FIND** the corresponding `issues.md` in the planning repository (search `projectos/*/requests/em-implementacao/*/issues.md` for the issue ID)
-3. From that folder, **READ** `spec.md` and `plan.md`
-4. If not found, inform the user
+1. **QUERY LINEAR** for `[ISSUE-ID]` to get: title, description (**acceptance criteria!**), status, labels, and any linked information.
+2. **LOCATE THE PLAN — try Mode B first, then Mode A:**
+   - **Mode B (code repo):** look for `docs/issues/<ISSUE-ID>/plan.md` in the current code repo. If it exists → **Mode B**. There is **no `spec.md`**; the Linear issue body (step 1) is the spec. Do not search the planning repo.
+   - **Mode A (planning repo):** otherwise, find the `issues.md` that references `[ISSUE-ID]` (search `projectos/*/requests/em-implementacao/*/issues.md`). From that folder, read `spec.md` **and** `plan.md`.
+3. **READ** the located `plan.md` in full (Mode A: also read `spec.md` in full).
+4. If neither location yields a `plan.md`, inform the user and **STOP** — do not improvise a plan (`/sdd-plan` must run first).
 
 ## Pre-conditions
 
 - Linear issue exists and is not Done/Cancelled
-- `plan.md` exists and has state PLANNED (approved)
-- `spec.md` exists
+- `plan.md` exists and is approved (PLANNED)
+- **Mode A only:** `spec.md` exists. **Mode B:** no `spec.md` — instead the Linear issue body must contain acceptance criteria; if it does not, stop and ask for them to be added in Linear before implementing.
 - Cross-module dependencies are IMPLEMENTED (if any)
 
 ## Behavior
@@ -56,10 +78,10 @@ Issues are tracked in **Linear** (project management tool). To query issues:
    - MCP: use the update issue tool to set state to "In Progress"
    - GraphQL: `mutation { issueUpdate(id: "<UUID>", input: { stateId: "<IN_PROGRESS_STATE_ID>" }) { success } }`
    - Query team states first if you do not know the state ID
-4. **READ** complete spec.md and plan.md
+4. **READ** the complete `plan.md` (Mode A: also the complete `spec.md`; Mode B: the Linear issue body's acceptance criteria stand in for the spec)
 5. **IMPLEMENT** step by step according to the plan, using **RED/GREEN/VERIFY** for each requirement:
 
-   For each RF-XX in the spec:
+   For each requirement (Mode A: each `RF-XX` in the spec; Mode B: each acceptance criterion in the Linear issue body):
    ```
    a) RED:    Write a test that validates the requirement (it MUST fail — if it passes, the feature already exists)
    b) GREEN:  Implement the minimum code to make the test pass
