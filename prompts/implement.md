@@ -49,6 +49,16 @@ Issues are tracked in **Linear** (project management tool). To query issues:
 - **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
 - **CLI**: `linear-cli` if installed
 
+## Deferral Hygiene
+
+If you open a Linear deferral during this phase, the new issue **MUST** carry the `tech-debt` label in its team's workspace (see `SDD_DISCIPLINE.md` §Rule 3 for the full rule and rationale):
+
+1. Check if `tech-debt` exists in the team's label set (Linear MCP / GraphQL).
+2. If missing, create it: name `tech-debt`, color `#6e6e6e`, description `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`.
+3. Apply the label as part of the issue-creation mutation (`labelIds`). Verify the response contains it.
+
+An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work. If MCP fails to apply, surface the failure in the phase output; do not silently accept an unlabelled deferral.
+
 ## Locate Issue, Spec and Plan
 
 1. **QUERY LINEAR** for `[ISSUE-ID]` to get: title, description (**acceptance criteria!**), status, labels, and any linked information.

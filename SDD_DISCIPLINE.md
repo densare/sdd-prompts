@@ -50,6 +50,32 @@ Classifying an edge case as *"pequena janela visual"* / *"small UX issue"* / *"u
 
 ---
 
+## Rule 3 — Every Linear deferral carries the `tech-debt` label
+
+Any Linear issue you create as a **deferral** from an SDD phase (specify, plan, implement, check, fix, end-issue) **MUST** carry the `tech-debt` label in its team's workspace. No exceptions.
+
+### Why
+
+Operators rely on the label to filter the orchestrator-generated tech-debt backlog separately from feature work (`backlog-followup.md`, queue triage, prioritisation reviews). A deferral without the label is invisible to that workflow — it pollutes the feature backlog and won't get picked up in tech-debt sweeps.
+
+Captured 2026-05-30 after the DT-582/DT-662/DT-663 incident where a deferral was opened twice (end-issue agent didn't know the operator had already opened DT-662, opened DT-663 as duplicate). The duplicate revealed that there was no machine-readable signal distinguishing tech-debt from real backlog.
+
+### How to apply
+
+When creating a Linear deferral via MCP (or any other path):
+
+1. **Check** if the label `tech-debt` exists in the issue's team (`workspace.team.labels`).
+2. **Create** it if missing — use this canonical form (don't invent variants):
+   - **name**: `tech-debt` (lowercase, hyphen, no spaces)
+   - **color**: neutral grey (`#6e6e6e` is the canonical choice)
+   - **description**: `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`
+3. **Apply** the label to the new issue *during creation* (additional label IDs in the `labelIds` field of the create mutation), preserving any other labels the issue already has from templates.
+4. **Verify** post-create: the response payload includes the labels list — sanity-check it contains the tech-debt label ID. If absent, retry the label application as a separate mutation.
+
+This is a hard rule, not a recommendation: an unlabelled deferral is a defect. If the Linear MCP call fails to apply the label, do not proceed — surface the failure in the phase output so the operator can fix it.
+
+---
+
 ## Related
 
 - [`ANTI_PATTERNS.md`](./ANTI_PATTERNS.md) — 10 anti-patterns to avoid in code (mandatory reading before any SDD phase). AP-09 (infrastructure-only without entry-point) and AP-10 (storage semantics inconsistency) added in 2026-05 after the DT-547..589 and PLT-205/207/281 chains.

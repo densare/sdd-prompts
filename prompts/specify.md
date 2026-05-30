@@ -19,6 +19,16 @@ Read or have access to:
 
 Format: `<project> <ID>` — see AGENTS.md for available projects and ID format.
 
+## Deferral Hygiene
+
+If you open a Linear deferral during this phase (specify often surfaces out-of-scope work that becomes a new issue), the new issue **MUST** carry the `tech-debt` label in its team's workspace (see `SDD_DISCIPLINE.md` §Rule 3 for the full rule and rationale):
+
+1. Check if `tech-debt` exists in the team's label set (Linear MCP / GraphQL).
+2. If missing, create it: name `tech-debt`, color `#6e6e6e`, description `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`.
+3. Apply the label as part of the issue-creation mutation (`labelIds`). Verify the response contains it.
+
+An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work. If MCP fails to apply, surface the failure in the phase output; do not silently accept an unlabelled deferral.
+
 ## Locate the Request
 
 Search for the request file in `projectos/<project>/requests/` (in order):

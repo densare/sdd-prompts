@@ -230,6 +230,7 @@ Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitH
 
 > Items that are acceptable to defer to a separate issue. NOT blockers — the code is good enough to merge.
 > Each deferral MUST have a Linear issue created by the reviewer during this check.
+> Each deferral Linear issue MUST carry the `tech-debt` label — see `SDD_DISCIPLINE.md` §Rule 3 (create the label in the team if missing, then apply during issue creation).
 
 | # | Deferral | Reason for deferring | Linear Issue | Priority |
 |---|----------|---------------------|-------------|----------|
@@ -251,6 +252,7 @@ _If no deferrals, omit this section._
 
 6. **CREATE LINEAR ISSUES FOR DEFERRALS** (only if verdict is APPROVED WITH DEFERRALS):
    - For each deferral, create a Linear issue with: title, description, priority, link to original issue
+   - **Apply the `tech-debt` label** (mandatory — see `SDD_DISCIPLINE.md` §Rule 3). Create the label in the team first if missing.
    - Record the issue ID in the Deferrals table of the report
    - Deferrals are NOT corrections — they are accepted work for a future cycle
 
