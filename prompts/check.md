@@ -256,11 +256,48 @@ Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitH
 > Each deferral MUST have a Linear issue created by the reviewer during this check.
 > Each deferral Linear issue MUST carry the `tech-debt` label — see `SDD_DISCIPLINE.md` §Rule 3 (create the label in the team if missing, then apply during issue creation).
 
+#### Deferral signals — actively look for these (audit-style 2026-05-31)
+
+A pattern observed across the eval cycle (kimi/codex/opus comparisons): opus-class reviewers
+**under-report deferrals** because they apply "true trade-off only" too strictly and declare
+everything-else as ✅ silently. Codex-class reviewers catch more legitimate follow-ups because
+they tolerate "could be extended" framing. Both readings are valid, but legitimate follow-ups
+that get silently swallowed turn into rediscovered work months later (more expensive than
+opening a small Linear issue now).
+
+**You MUST open a deferral whenever you observe ANY of:**
+
+1. **Any anti-pattern hits a NOTE / yellow zone** (e.g. file 500–600 LOC, method 35-55 LOC,
+   abstraction with 2 implementations where 1 of them is trivial). Even if you mark it ✅ NOTE
+   in the AP table, open a deferral *to track the trajectory* — yellow becomes red without
+   warning, and the eventual split is cheaper if it's already a Linear ticket.
+2. **Tests cover this change's happy path but a sibling enum/branch/case in the SAME file
+   still lacks coverage.** The reviewer's privileged "I just read the whole file" position
+   makes them best-placed to spot it. Operators reading the diff six months later cannot.
+3. **A `TODO`/`FIXME`/`HACK` comment in code you touched** that wasn't part of THIS issue's
+   scope. Don't fix it — defer it, with the file:line reference.
+4. **Pattern reuse opportunity surfaced by the change**: this PR introduced a helper / writer /
+   mapper that should logically also replace 1+ duplicated implementations elsewhere, but the
+   replacement is out-of-scope here.
+5. **Doc comment / CHANGELOG entry / AGENTS.md row that drifted** because of this change but
+   is technically separate text-only work.
+6. **A spec / plan inversion you discovered** during review — the implementation is correct
+   under the operator's *real* intent, but the spec wording is misleading and will trip the
+   next reader.
+
+Deferrals from these signals are **net positive** — they cost ~30 seconds to write, they prevent
+silent rot, and they make tech-debt visible to the operator (who can then prioritise / dismiss).
+Err on the side of opening rather than skipping. Anti-patterns/follow-ups that are TOO MINOR
+to be a Linear issue (e.g. one trailing space) should be fixed inline now or ignored, not deferred.
+
 | # | Deferral | Reason for deferring | Linear Issue | Priority |
 |---|----------|---------------------|-------------|----------|
 | 1 | [description] | [why it's acceptable to defer] | [XX-NNN](url) | P1/P2/P3 |
 
-_If no deferrals, omit this section._
+_If no deferrals, omit this section._ But if you're about to omit it on a >500-LOC change with
+a green AP table, **re-read signals 1–6 above** — a clean AP table for a substantial change
+usually means signal 1 (yellow zones), 2 (test gaps), or 4 (pattern-reuse) is present and
+worth a deferral.
 
 ---
 
