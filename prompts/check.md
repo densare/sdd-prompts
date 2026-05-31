@@ -116,15 +116,23 @@ How to ensure independence:
 
 - [ ] **STOP all further verification work.** Before producing the check report, ask the operator to run the smokes. Present each smoke as a **separate block with a bold heading and a vertical numbered list** (one step per line). Do NOT use a markdown table with line-break trickery (`<br>` inside cells does not render line breaks in most terminal markdown renderers — steps collapse into a paragraph).
 
-##### Format template (mandatory)
+##### Format template (MANDATORY — exact structure, no variants)
+
+> The orchestrator parses smoke sections automatically (`scripts/read_smokes.py` + `surface_smoke.py`).
+> Any deviation from the structure below silently breaks parsing and forces a manual canonical
+> rewrite by the operator before the smoke can be processed. Recurring incidents 2026-05-30
+> (DT-660, DT-661, DT-482 ag3) all traced to this. The format below is **canonical** — emit it
+> verbatim, do not paraphrase headings, do not wrap in code blocks, do not use flat numbered
+> lists across all scenarios.
 
 ```markdown
-Run the following smoke tests in the running app and reply with PASS/FAIL per smoke + observations.
-Each block is a separate scenario — test them individually, not as a batch.
+## SMOKE TEST REQUIRED
+
+<one short paragraph: why human eyes are required (UI/visual/runtime) and what data setup applies>
 
 ---
 
-**Smoke 1 — <field or flow name>**
+**Smoke 1 — <short scenario title>**
 
 1. <setup action, e.g. "Importar `process1.dtz`">
 2. <navigate, e.g. "Abrir painel Envolvente">
@@ -133,29 +141,45 @@ Each block is a separate scenario — test them individually, not as a batch.
 5. <commit, e.g. "Clicar **OK**">
 6. **Deves ver** <observable outcome, e.g. "`Az: Norte` na linha da parede">
 
+**Resposta:** _(operator writes PASS | FAIL | DEFERRAL — see response rules below)_
+
 ---
 
-**Smoke 2 — <next field/flow>**
+**Smoke 2 — <next scenario title>**
 
 1. ...
+6. **Deves ver** ...
+
+**Resposta:** _(operator writes PASS | FAIL | DEFERRAL)_
 
 ---
 ```
 
-##### Authoring rules
+##### Authoring rules (strict)
 
-- **Numbered list** (`1.`, `2.`, ...) — one step per line. Renders correctly in terminals and browsers without `<br>` hacks.
-- Use `---` horizontal rule between smokes for visual separation.
-- Each step is an **action** (open / click / type / select) **OR** the final **expected observation** (always prefixed with `**Deves ver**` or equivalent in the project's language).
-- The expected observation is **the last numbered step**, not a separate paragraph.
+- **Section header is literally `## SMOKE TEST REQUIRED`** — no numbering prefix (`## 6. SMOKE TEST...` breaks `surface_smoke.py` extraction), no translation, no variants like "## Manual Smokes".
+- **Each smoke is its own block** with bold heading `**Smoke N — title**` (em-dash or hyphen, both accepted). Do NOT collapse all scenarios into a single code block or a single flat numbered list across the section — those formats are unparseable.
+- **Per-smoke numbered list** (`1.`, `2.`, ...): one step per line. Renders correctly in terminals and browsers without `<br>` hacks.
+- The expected observation is **the last numbered step**, prefixed with `**Deves ver**` (or `→ expected:` in English projects).
+- After the steps, a literal `**Resposta:**` line with an italic placeholder — the operator fills this with `PASS`, `FAIL — <reason>`, or `DEFERRAL — <Linear-ID> <reason>`. The placeholder is what the parser uses to detect "answer slot present but pending".
+- `---` horizontal rule between smokes for visual separation (also a robust block delimiter for the parser).
 - Steps must be **concrete**: name the file, tab, control, value. Avoid generic phrasings ("edit the field") — say "Tab Geometria → dropdown Orientation → escolher Norte".
 - Each smoke MUST be **per-field or per-flow**, not generic. Generic smokes ("edit element + OK") can mask field-specific gaps. If the change touches 4 fields, present 4 smokes.
 - Include the test data context in step 1 of the first smoke (e.g., "Importar `process1.dtz`" or "Abrir projecto com PEN + ENU"). Subsequent smokes can assume the same project is open.
-- End the message with a single line asking for the response format: e.g. `Responde **PASS/FAIL** por smoke + observações. Verdict em hold.`
 
-##### Why no table
+##### Anti-patterns that BREAK the parser (do not emit)
 
-Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitHub markdown viewer with default CSS, plain-text logs). Even when `<br>` works in HTML output, it doesn't in plain markdown rendering. Numbered lists work universally. The verdict gate is operator readability — if the operator can't follow the steps line-by-line, the smoke is harder to execute correctly.
+These shapes have all been observed and required manual rewrites — do not use them:
+
+1. ❌ **Single fenced code block wrapping all smokes** (` ```\nSmoke 1\n...\nSmoke 5\n``` `): parser can't see headings. Seen in DT-660.
+2. ❌ **Flat numbered list across the whole section** (`1. <scenario 1 step 1>` ... `15. <scenario 5 step 3>`) without `**Smoke N — title**` bold dividers. Parser detects zero smokes. Seen in DT-661.
+3. ❌ **Section header with numbering prefix** (`## 6. SMOKE TEST REQUIRED`): `surface_smoke.py`'s regex tolerates this *now* but it makes downstream parsers brittle. Use plain `## SMOKE TEST REQUIRED`. Seen in DT-482 ag3.
+4. ❌ **Smoke heading as H3** instead of bold (`### Smoke 1`): tolerated, but bold is the canonical form — pick one and stick to the template above.
+5. ❌ **Missing `**Resposta:**` slot per smoke**: operator can still respond, but the parser can't tell "pending" from "PASS" reliably. Always include the slot.
+
+##### Why no table, no code block
+
+Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitHub markdown viewer with default CSS, plain-text logs). Even when `<br>` works in HTML output, it doesn't in plain markdown rendering. Numbered lists work universally. Code blocks hide structure from markdown-aware parsers. The verdict gate is operator readability AND machine parsability — both must hold.
 
 #### Step 3 — Verdict based on smoke results
 
