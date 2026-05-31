@@ -78,12 +78,19 @@ An unlabelled deferral is a defect — operators rely on the label to separate t
 ## Behavior
 
 1. **READ MANDATORY FILES** — If you haven't already, read `sdd/ANTI_PATTERNS.md`, `sdd/QUALITY_GATES.md`, and `AGENTS.md` now. Do NOT skip this.
-2. **CREATE BRANCH** — NEVER work directly on `main`. Create a feature branch:
-   ```bash
-   git checkout main && git pull origin main
-   git checkout -b feature/[ISSUE-ID]
-   ```
-   All implementation work MUST happen on this branch. Verify you are on the branch before writing any code (`git branch --show-current`).
+2. **CREATE / REUSE BRANCH — PRESERVE EXISTING HISTORY** — NEVER work directly on `main`. There are two cases:
+   - **Branch does not exist:** create from current trunk:
+     ```bash
+     git checkout main && git pull origin main   # (or master, whichever this repo uses)
+     git checkout -b feature/[ISSUE-ID]
+     ```
+   - **Branch already exists** (e.g., a prior phase committed `spec.md` / `plan.md` under `docs/issues/[ISSUE-ID]/`, or an A/B-eval setup pre-staged the branch):
+     ```bash
+     git checkout feature/[ISSUE-ID]            # or whatever the branch is actually named
+     git log --oneline                          # confirm prior commits are present
+     ```
+     **Do NOT `git reset`, `git rebase`, `git commit --amend`, `git rebase -i`, `git push --force` or `git checkout -B` an existing branch.** History is part of the deliverable — losing the spec/plan commit means the merge to main loses those artifacts. Add NEW commits on top; never rewrite.
+   All implementation work MUST happen on this branch. Verify branch + log before writing any code (`git branch --show-current && git log --oneline -5`).
 3. **UPDATE LINEAR** — Move the issue to **In Progress**. This signals to the team that work is underway. Do NOT skip this step.
    - MCP: use the update issue tool to set state to "In Progress"
    - GraphQL: `mutation { issueUpdate(id: "<UUID>", input: { stateId: "<IN_PROGRESS_STATE_ID>" }) { success } }`
@@ -155,6 +162,7 @@ An unlabelled deferral is a defect — operators rely on the label to separate t
 - **NEVER** close or comment on GitHub Issues
 - **NEVER** run `/sdd-check` or `/sdd-end-issue` — those are separate phases
 - **NEVER** delete branches
+- **NEVER rewrite git history on an existing branch** — no `git reset` (other than `--mixed` for unstaging your OWN uncommitted changes), no `git rebase`, no `git commit --amend`, no `git checkout -B` of an existing branch, no `git push --force`. If `docs/issues/[ISSUE-ID]/spec.md` or `plan.md` already exists in a prior commit on this branch, that commit MUST survive — add your implementation as new commits on top. (DT-482 incident 2026-05-30: a previous implementation drop spec/plan commit by amending, which would have made the merge to main lose those artifacts.)
 
 **This phase writes code, commits locally, and updates Linear to In Progress.** Branch creation (step 2), Linear update (step 3), and local commit (step 10) are the ONLY git/Linear operations allowed. Do NOT push, create PRs, or mark issues as Done. The workflow continues with CHECK, then END-ISSUE.
 
