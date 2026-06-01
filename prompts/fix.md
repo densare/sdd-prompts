@@ -24,10 +24,19 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To query issues:
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__list_issues`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+Issues are tracked in **Linear**. **Use `scripts/linear.py` for ALL Linear ops** — read, list, create, update, comment, label:
+
+```bash
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN
+python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --open-only --limit 50 [--json]
+python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 1 --labels tech-debt
+python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state "In Review" --comment "..."
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — its tool schemas + verbose responses were consuming ~50% of session context. Calling `mcp__linear__*` will fail.
 
 ## Deferral Hygiene
 
@@ -41,15 +50,7 @@ python "$ORCH_HOME/scripts/linear.py" create   --team DenTherm --title "<deferra
 
 The script auto-creates the `tech-debt` label if missing (color #6e6e6e, description per SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID.
 
-Operator observation 2026-06-01: **50% of session usage** was attributed to Linear MCP. The linear.py path is functionally equivalent + zero context cost.
-
-Old 3-step MCP procedure (for reference / fallback only if linear.py unavailable):
-
-1. Check if `tech-debt` exists in the team's label set (Linear MCP / GraphQL).
-2. If missing, create it: name `tech-debt`, color `#6e6e6e`, description `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`.
-3. Apply the label as part of the issue-creation mutation (`labelIds`). Verify the response contains it.
-
-An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work. If MCP fails to apply, surface the failure in the phase output; do not silently accept an unlabelled deferral.
+An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work.
 
 ## Locate Review Report
 

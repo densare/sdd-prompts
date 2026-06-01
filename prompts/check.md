@@ -19,24 +19,19 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Issues are tracked in **Linear**. Two paths — pick the cheaper one for each operation:
+Issues are tracked in **Linear**. **Use `scripts/linear.py` for ALL Linear ops** — read, list, create, update, comment, label:
 
-- **`scripts/linear.py`** (orchestrator helper, direct GraphQL, **zero context bloat, ~$0/call**) —
-  USE THIS for **batch / write** ops: `create`, `update`, `label`, `list`, `get` (when you just
-  need the structured fields). Invoke via Bash:
-  ```bash
-  python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --labels F1 --open-only --limit 50 --json
-  python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 1 --estimate 2 --labels tech-debt
-  python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state "Cancelled" --comment "..."
-  python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
-  ```
-  `$ORCH_HOME` is the SDD orchestrator folder; API key auto-loaded from any sandbox's `.linear.env`.
-- **Linear MCP tools** (`mcp__linear__*`) — USE ONLY for **interactive reading** when you need
-  to reason about full issue body, comments, relations during the turn. Each MCP call inflates
-  context for the rest of the session — operator observed **50% of session usage attributed to
-  MCP linear** (2026-06-01); avoid unless interactive context is genuinely needed.
-- **GraphQL direct** (`https://api.linear.app/graphql`) — last resort if linear.py doesn't cover
-  the op; prefer extending linear.py.
+```bash
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN                                          # full issue (description, labels, parent/children, relations)
+python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --open-only --labels F1 --limit 50 [--json]
+python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 1 --estimate 2 --labels tech-debt
+python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state "In Review" --comment "..."
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — its tool schemas + verbose responses were consuming ~50% of session context. Calling `mcp__linear__*` will fail. If linear.py is missing an op, extend it — don't fall back to MCP or curl.
 
 ## Locate Issue and Spec
 
@@ -348,7 +343,6 @@ worth a deferral.
      The script auto-creates the `tech-debt` label in the team if missing (SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID. Capture the ID from stdout.
    - Record the issue ID in the Deferrals table of the report
    - Deferrals are NOT corrections — they are accepted work for a future cycle
-   - **Fallback (only if linear.py unavailable):** use Linear MCP `mcp__linear__create_issue` + `mcp__linear__update_issue` for label attach. Each MCP call inflates session context by ~5-10k tokens; avoid in batch loops.
 
 7. **DOCUMENTATION MAINTENANCE** (mandatory after approved check):
    - **REMOVE** temporary and irrelevant files

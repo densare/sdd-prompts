@@ -20,10 +20,16 @@ See AGENTS.md for available projects.
 
 Issues are tracked in **Linear** (project management tool). **Linear is the source of truth for issue status, NOT STATUS.md files.** You MUST query Linear for every request that has issues.
 
-Methods (in order of preference):
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__list_issues`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+**Use `scripts/linear.py` for ALL Linear queries:**
+
+```bash
+python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --limit 100 --json
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — it was consuming ~50% of session context. Calling `mcp__linear__*` will fail.
 
 **CRITICAL**: NEVER trust STATUS.md as source of truth for issue progress. STATUS.md is a cache that may be stale. Always query Linear first, then update STATUS.md to match.
 

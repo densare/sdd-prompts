@@ -24,10 +24,16 @@ Many requests were written for features that may already exist in code. Instead 
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To search for existing issues:
-- **MCP tools**: If available (e.g., `mcp__linear__list_issues`, `mcp__linear__get_issue`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+Issues are tracked in **Linear**. **Use `scripts/linear.py` for ALL Linear ops:**
+
+```bash
+python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --open-only --limit 50 [--json]
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — it was consuming ~50% of session context. Calling `mcp__linear__*` will fail.
 
 ## Locate Request
 

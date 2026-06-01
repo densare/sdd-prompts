@@ -23,19 +23,18 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Two paths — pick the cheaper:
+**Use `scripts/linear.py` for ALL Linear ops** — read, list, create, update, comment, label:
 
-- **`scripts/linear.py`** (orchestrator helper, direct GraphQL, **zero context bloat**) —
-  USE THIS for all write ops (state change, comment, label apply, create). API key auto-loaded:
-  ```bash
-  python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state Done --comment "Merged via PR #1234"
-  python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
-  python "$ORCH_HOME/scripts/linear.py" get DT-NNN     # read structured fields cheaply
-  python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --priority 3 --labels tech-debt
-  ```
-- **Linear MCP** — only for **interactive issue body reading** mid-turn (e.g., the agent needs
-  to reason about the body + comments + relations together). Each MCP call adds ~5-10k tokens
-  to context for the rest of the session; **avoid in batch update loops**.
+```bash
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN                                          # full issue (description, labels, parent/children, relations)
+python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state Done --comment "Merged via PR #1234"
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 3 --labels tech-debt
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — its tool schemas + verbose responses were consuming ~50% of session context. Calling `mcp__linear__*` will fail. If linear.py is missing an op, extend it — don't fall back to MCP or curl.
 
 ## Deferral Hygiene
 

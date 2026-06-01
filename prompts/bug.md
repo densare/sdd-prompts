@@ -25,10 +25,19 @@ Detection: if it starts with a known project prefix (DT-, DS-, SM-) it's an exis
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To query/create issues:
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__create_issue`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+Issues are tracked in **Linear**. **Use `scripts/linear.py` for ALL Linear ops** — read, list, create, update, comment, label:
+
+```bash
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN
+python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --open-only --limit 50 [--json]
+python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 1 --labels tech-debt
+python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state "In Review" --comment "..."
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — its tool schemas + verbose responses were consuming ~50% of session context. Calling `mcp__linear__*` will fail.
 
 ## Behavior
 

@@ -31,15 +31,7 @@ python "$ORCH_HOME/scripts/linear.py" create   --team DenTherm --title "<deferra
 
 The script auto-creates the `tech-debt` label if missing (color #6e6e6e, description per SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID.
 
-Operator observation 2026-06-01: **50% of session usage** was attributed to Linear MCP. The linear.py path is functionally equivalent + zero context cost.
-
-Old 3-step MCP procedure (for reference / fallback only if linear.py unavailable):
-
-1. Check if `tech-debt` exists in the team's label set (Linear MCP / GraphQL).
-2. If missing, create it: name `tech-debt`, color `#6e6e6e`, description `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`.
-3. Apply the label as part of the issue-creation mutation (`labelIds`). Verify the response contains it.
-
-An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work. If MCP fails to apply, surface the failure in the phase output; do not silently accept an unlabelled deferral.
+An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work.
 
 ## Locate the Request
 

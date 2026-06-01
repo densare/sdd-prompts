@@ -26,10 +26,17 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To query/update issues:
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__update_issue`)
-- **GraphQL API**: `https://api.linear.app/graphql`
-- **CLI**: `linear-cli` if installed
+Issues are tracked in **Linear**. **Use `scripts/linear.py` for ALL Linear ops:**
+
+```bash
+python "$ORCH_HOME/scripts/linear.py" get DT-NNN
+python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state Done --comment "..."
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+```
+
+`$ORCH_HOME` is exported by the orchestrator; API key auto-discovered from `<sandbox>/.linear.env`.
+
+**DO NOT use Linear MCP** (`mcp__linear__*`). The MCP was detached from sandbox `.mcp.json` on 2026-06-01 — it was consuming ~50% of session context. Calling `mcp__linear__*` will fail.
 
 ## Verification Checklist
 
