@@ -133,6 +133,7 @@ How to ensure independence:
 ---
 
 **Smoke 1 — <short scenario title>**
+**Runner:** HUMAN
 
 1. <setup action, e.g. "Importar `process1.dtz`">
 2. <navigate, e.g. "Abrir painel Envolvente">
@@ -146,9 +147,11 @@ How to ensure independence:
 ---
 
 **Smoke 2 — <next scenario title>**
+**Runner:** AGENT
 
-1. ...
-6. **Deves ver** ...
+1. <setup, e.g. "Run `go run . extract` in `scripts/migrate-dentherm`">
+2. <act, e.g. "Open `canonical/license_items.json`">
+3. **Expect** <machine-checkable outcome, e.g. "row with payment has `payment_id`; offer row omits it">
 
 **Resposta:** _(operator writes PASS | FAIL | DEFERRAL)_
 
@@ -159,6 +162,11 @@ How to ensure independence:
 
 - **Section header is literally `## SMOKE TEST REQUIRED`** — no numbering prefix (`## 6. SMOKE TEST...` breaks `surface_smoke.py` extraction), no translation, no variants like "## Manual Smokes".
 - **Each smoke is its own block** with bold heading `**Smoke N — title**` (em-dash or hyphen, both accepted). Do NOT collapse all scenarios into a single code block or a single flat numbered list across the section — those formats are unparseable.
+- **`**Runner:**` line immediately after each `**Smoke N — title**` heading**, on its own line, value `AGENT` or `HUMAN`. This tells the orchestrator who executes the smoke:
+  - **`HUMAN`** — requires human eyes/hands: GUI interaction, visual layout/rendering, "looks right" judgement, desktop-window (Avalonia) flows, anything where the acceptance is *what the operator sees on screen*. **This is the default** — if a smoke is even partly visual, or you are unsure, mark it `HUMAN`.
+  - **`AGENT`** — fully machine-checkable with no visual judgement: CLI commands and their exit status / stdout, file contents (JSON/CSV) inspected programmatically, SQL queries and row counts, HTTP requests and response codes/bodies, log assertions. A headless agent can run these and decide PASS/FAIL deterministically.
+  - **Rule of thumb:** if the expected observation can be expressed as "this command/query returns this value" → `AGENT`. If it is "the operator sees X on the screen / the layout looks Y" → `HUMAN`. Mixed flows split into separate smokes by runner where possible; if inseparable, mark `HUMAN`.
+  - **Backward compatibility:** a smoke with no `**Runner:**` line is treated as `HUMAN` (the historical default). Existing reports without the tag keep working unchanged.
 - **Per-smoke numbered list** (`1.`, `2.`, ...): one step per line. Renders correctly in terminals and browsers without `<br>` hacks.
 - The expected observation is **the last numbered step**, prefixed with `**Deves ver**` (or `→ expected:` in English projects).
 - After the steps, a literal `**Resposta:**` line with an italic placeholder — the operator fills this with `PASS`, `FAIL — <reason>`, or `DEFERRAL — <Linear-ID> <reason>`. The placeholder is what the parser uses to detect "answer slot present but pending".
@@ -189,8 +197,9 @@ Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitH
 
 #### Step 4 — Reviewer role boundary
 
-- [ ] Reviewer must NOT run smokes themselves (no UI/runtime access). Operator is the source of truth for "did it actually work in the running app".
-- [ ] Reviewer must NOT proceed to verdict (APPROVED/REJECTED) without smoke confirmation. Polling once is enough — wait for operator reply, do not assume.
+- [ ] Reviewer (this `/sdd-check` run) must NOT run smokes themselves — neither `HUMAN` nor `AGENT` ones. Your job is to *author and classify* the smoke list, then STOP. `HUMAN` smokes are run by the operator; `AGENT` smokes are dispatched by the orchestrator to a separate headless runner. Either way the verdict is `SMOKE TEST REQUIRED` and the result comes back to you / the orchestrator out-of-band.
+- [ ] Reviewer must NOT proceed to verdict (APPROVED/REJECTED) without smoke confirmation. For `AGENT` smokes the orchestrator's runner supplies PASS/FAIL/DEFERRAL/BLOCKED-INFRA; for `HUMAN` smokes the operator does. Polling once is enough — wait for the reply, do not assume.
+- [ ] Classify honestly: marking a genuinely-visual smoke as `AGENT` to avoid the human gate will produce a false PASS. When unsure, `HUMAN`.
 
 5. **PRODUCE** structured report with **mandatory tables** (PASS/FAIL per criterion):
 
