@@ -19,10 +19,24 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To query issues:
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__list_issues`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+Issues are tracked in **Linear**. Two paths — pick the cheaper one for each operation:
+
+- **`scripts/linear.py`** (orchestrator helper, direct GraphQL, **zero context bloat, ~$0/call**) —
+  USE THIS for **batch / write** ops: `create`, `update`, `label`, `list`, `get` (when you just
+  need the structured fields). Invoke via Bash:
+  ```bash
+  python "$ORCH_HOME/scripts/linear.py" list --team DenTherm --labels F1 --open-only --limit 50 --json
+  python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --description "..." --priority 1 --estimate 2 --labels tech-debt
+  python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state "Cancelled" --comment "..."
+  python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+  ```
+  `$ORCH_HOME` is the SDD orchestrator folder; API key auto-loaded from any sandbox's `.linear.env`.
+- **Linear MCP tools** (`mcp__linear__*`) — USE ONLY for **interactive reading** when you need
+  to reason about full issue body, comments, relations during the turn. Each MCP call inflates
+  context for the rest of the session — operator observed **50% of session usage attributed to
+  MCP linear** (2026-06-01); avoid unless interactive context is genuinely needed.
+- **GraphQL direct** (`https://api.linear.app/graphql`) — last resort if linear.py doesn't cover
+  the op; prefer extending linear.py.
 
 ## Locate Issue and Spec
 
@@ -322,10 +336,19 @@ worth a deferral.
 ```
 
 6. **CREATE LINEAR ISSUES FOR DEFERRALS** (only if verdict is APPROVED WITH DEFERRALS):
-   - For each deferral, create a Linear issue with: title, description, priority, link to original issue
-   - **Apply the `tech-debt` label** (mandatory — see `SDD_DISCIPLINE.md` §Rule 3). Create the label in the team first if missing.
+   - **MUST use `scripts/linear.py create`** (NOT Linear MCP) — direct GraphQL = zero context bloat:
+     ```bash
+     python "$ORCH_HOME/scripts/linear.py" create \
+       --team DenTherm \
+       --title "<deferral title>" \
+       --description "<context + link to parent issue + scope>" \
+       --priority 3 --estimate 2 \
+       --labels tech-debt
+     ```
+     The script auto-creates the `tech-debt` label in the team if missing (SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID. Capture the ID from stdout.
    - Record the issue ID in the Deferrals table of the report
    - Deferrals are NOT corrections — they are accepted work for a future cycle
+   - **Fallback (only if linear.py unavailable):** use Linear MCP `mcp__linear__create_issue` + `mcp__linear__update_issue` for label attach. Each MCP call inflates session context by ~5-10k tokens; avoid in batch loops.
 
 7. **DOCUMENTATION MAINTENANCE** (mandatory after approved check):
    - **REMOVE** temporary and irrelevant files

@@ -23,20 +23,36 @@ Format: `[ISSUE-ID]` (e.g., DT-48, DS-366 — a Linear issue identifier)
 
 ## Linear Access
 
-Issues are tracked in **Linear** (project management tool). To query/update issues:
-- **MCP tools**: If available (e.g., `mcp__linear__get_issue`, `mcp__linear__update_issue`)
-- **GraphQL API**: `https://api.linear.app/graphql` — see [Linear API docs](https://developers.linear.app/docs/graphql/working-with-the-graphql-api)
-- **CLI**: `linear-cli` if installed
+Two paths — pick the cheaper:
+
+- **`scripts/linear.py`** (orchestrator helper, direct GraphQL, **zero context bloat**) —
+  USE THIS for all write ops (state change, comment, label apply, create). API key auto-loaded:
+  ```bash
+  python "$ORCH_HOME/scripts/linear.py" update DT-NNN --state Done --comment "Merged via PR #1234"
+  python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+  python "$ORCH_HOME/scripts/linear.py" get DT-NNN     # read structured fields cheaply
+  python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --priority 3 --labels tech-debt
+  ```
+- **Linear MCP** — only for **interactive issue body reading** mid-turn (e.g., the agent needs
+  to reason about the body + comments + relations together). Each MCP call adds ~5-10k tokens
+  to context for the rest of the session; **avoid in batch update loops**.
 
 ## Deferral Hygiene
 
-If you open a Linear deferral during this phase (rare for end-issue but allowed — e.g., when verifying APPROVED WITH DEFERRALS surfaces additional items), the new issue **MUST** carry the `tech-debt` label in its team's workspace (see `SDD_DISCIPLINE.md` §Rule 3 for the full rule and rationale):
+If you open a Linear deferral during this phase (rare for end-issue but allowed — e.g., when verifying APPROVED WITH DEFERRALS surfaces additional items), the new issue **MUST** carry the `tech-debt` label (see `SDD_DISCIPLINE.md` §Rule 3 for rationale). One-liner via the helper script (auto-creates the label if missing):
 
-1. Check if `tech-debt` exists in the team's label set (Linear MCP / GraphQL).
-2. If missing, create it: name `tech-debt`, color `#6e6e6e`, description `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`.
-3. Apply the label as part of the issue-creation mutation (`labelIds`). Verify the response contains it.
+```bash
+python "$ORCH_HOME/scripts/linear.py" create \
+  --team DenTherm --title "<deferral title>" \
+  --description "<context + link to parent + scope>" \
+  --priority 3 --estimate 1 --labels tech-debt
+```
 
-Also when **verifying** existing deferrals from `check-report.md`: if any deferral Linear issue is missing the `tech-debt` label, apply it now (idempotent). Do not block merge over a missing label — fix it and proceed.
+When **verifying** existing deferrals from `check-report.md`: if any deferral Linear issue is missing the `tech-debt` label, apply it now (idempotent):
+```bash
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+```
+Do not block merge over a missing label — fix it and proceed.
 
 An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work.
 
