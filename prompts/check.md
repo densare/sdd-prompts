@@ -110,6 +110,23 @@ How to ensure independence:
 ### Manual Smoke Tests — operator-driven verification (MANDATORY GATE)
 
 > **Smoke is part of `/sdd-check`, NOT `/sdd-end-issue`.** Acceptance must be confirmed here before APPROVED verdict. `/sdd-end-issue` is purely close-out machinery (push/PR/merge/Linear) and assumes acceptance was already validated.
+
+#### Pre-step — Finalize mode (read operator's existing smoke responses)
+
+If `smokes.<ISSUE>.md` already exists in the sandbox root AND at least one `**Resposta:**` line is **not** a placeholder (placeholder = wrapped in `_(...)` underscores), the operator has already responded to a prior smoke prompt. In that case:
+
+- **READ** `smokes.<ISSUE>.md` and parse per-smoke responses (PASS / FAIL / DEFERRAL).
+- **DO NOT regenerate** the smoke list/file. Do not write `## SMOKE TEST REQUIRED` again. Do not rewrite per-smoke blocks. Operator's authored content is the source of truth.
+- **AGGREGATE** the verdict:
+  - All PASS → final verdict = **APPROVED** (or APPROVED_WITH_DEFERRALS if other gates flagged non-blocking items).
+  - Any DEFERRAL + remaining PASS → final verdict = **APPROVED_WITH_DEFERRALS** (operator accepted deferred items as separate Linear issues — file them now per Deferral Hygiene if any are new).
+  - Any FAIL → final verdict = **REJECTED** with the FAIL reason copied into the report's corrective-actions section.
+  - Any PENDING (`**Resposta:** _(... underscores ...)_` placeholder still present in some smoke) → operator hasn't finished; emit verdict **SMOKE_REQUIRED** but keep the existing file unchanged.
+- Update `check-report.md` with the §Smoke Aggregate section (smoke counts + each smoke's verdict + observations). Do not overwrite check-report.md if it was already approved/rejected — append a "re-finalize" timestamped section.
+- Emit the final verdict to `result.json` so the watcher advances normally (`next_phase_for(check, APPROVED) → end-issue`; `next_phase_for(check, REJECTED) → fix`).
+- **Skip Step 0 onwards** (no new smoke list, no Legacy Validation re-run unless explicitly asked).
+
+Why this exists: previously check would always regenerate `smokes.<ISSUE>.md` on re-spawn, overwriting the operator's `**Resposta:** PASS` edits and looping the issue back to SMOKE_REQUIRED forever (DT-690 incident 2026-06-02). Operator's signal `"resposta dada do XXX"` triggers a check re-run — the re-run must HONOR existing responses, not erase them.
 >
 > **Anti-pattern observed in practice:** deferring smoke as "deferral #1 → part of end-issue checklist". Result: smoke fails during end-issue → STOP/REJECT/restart cycle (e.g., DT-576, DT-577). Correct workflow: smoke during check, end-issue mechanical.
 
