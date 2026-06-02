@@ -113,6 +113,36 @@ How to ensure independence:
 >
 > **Anti-pattern observed in practice:** deferring smoke as "deferral #1 → part of end-issue checklist". Result: smoke fails during end-issue → STOP/REJECT/restart cycle (e.g., DT-576, DT-577). Correct workflow: smoke during check, end-issue mechanical.
 
+#### Step 0 — Choose validation path (Legacy diff vs Human smoke)
+
+Before running the smoke list, query the Linear issue's labels (`python "$ORCH_HOME/scripts/linear.py" get <ISSUE-ID>` → `labels.nodes[].name`). Pick the path based on the label set:
+
+- **Label `validate-against-legacy` present** → take the **Legacy Validation Path** (below). This replaces human smoke entirely. Use for issues where correctness is "produces identical output to a legacy reference implementation" — typically XML/JSON exporters, mappers, parsers, calculators where the legacy code is the oracle. Operator decision 2026-06-02: human eyes are wrong for these; a diff against legacy is.
+- **Label `validate-against-legacy` ABSENT** → take the Human Smoke Path (Step 1 onwards).
+
+##### Legacy Validation Path
+
+Goal: prove the new implementation produces output equivalent to the legacy implementation on the same input(s).
+
+1. **Identify the legacy reference** — from the Linear issue body, `plan.md`, or `AGENTS.md`. Typical locations: `D:/dev/eac/dentherm_legacy/` (Java legacy). The issue body should name the specific legacy class/method (e.g. `XmlExporterRecs.java:1430-1525`); if it does not, **STOP** and ask the operator before guessing.
+2. **Pick a representative input** — a known-good project file (e.g. `validation/cases/process1/process1.dtz`, `bicas.dtz`, `susana.dtz`) OR a fixture the spec/plan names. If the issue is generic (no input specified), use **all three references** (process1 + bicas + susana) for coverage.
+3. **Produce two outputs**, on the same input:
+   - **NEW output**: invoke the new code path (export, mapper, calculator — whatever the issue introduces). Capture to a file in `.pipeline/legacy-diff.<ISSUE>/new.<ext>`.
+   - **LEGACY output**: invoke the legacy code path on the same input. Capture to `.pipeline/legacy-diff.<ISSUE>/legacy.<ext>`. If the legacy path is JVM-based, invoke via `java -cp ...` from the legacy repo; if CLI, use the CLI; if it requires a database or service, document the limitation and ask operator for the pre-generated legacy output.
+4. **Diff** the two outputs:
+   - For XML: normalise namespaces + whitespace + attribute order before diff. Use a structural XML diff (e.g. `xmldiff`, `diff -u` on canonicalised XML, or a project helper if one exists). Report differences as `<XPath>: expected=<legacy> got=<new>`.
+   - For JSON: canonicalise key order, then `diff` on sorted JSON.
+   - For numeric calculation outputs: per-field comparison with explicit tolerance (typical 0.01 absolute or relative — match what unit tests use); flag any field exceeding tolerance with `field, expected=<v>, got=<v>, delta=<d>`.
+   - For free-form text: line-by-line diff acceptable but flag every difference.
+5. **Verdict** is mechanical:
+   - **Empty diff (zero differences)** → record `**Legacy diff:** PASS (N fields/lines compared, zero divergence)` in the check report under a new heading `## LEGACY VALIDATION`. The check report's final verdict is APPROVED (or APPROVED_WITH_DEFERRALS if other gates flagged non-blocking items).
+   - **Non-empty diff** → record the full diff verbatim under `## LEGACY VALIDATION` with `**Legacy diff:** FAIL`. Final verdict is REJECTED. The fix phase will read the diff and address each divergence.
+   - **Cannot run legacy** (env missing, JVM unavailable, legacy code path broken) → record `**Legacy diff:** BLOCKED — <reason>` and verdict REJECTED with a note that operator must either fix the legacy invocation or convert this issue to human-smoke (remove `validate-against-legacy` label, add canonical smokes to plan).
+6. **Do NOT request human smoke** when this path is taken. The diff IS the smoke. The orchestrator advances on the report's final verdict; no `## SMOKE TEST REQUIRED` section is emitted.
+7. **Persist artifacts** — keep `.pipeline/legacy-diff.<ISSUE>/{new,legacy,diff}.<ext>` on the branch so the fix phase (and future audits) can inspect what was compared. Add them to git (small text files; XML/JSON are usually < 1 MB).
+
+Continue to "Anti-patterns" gate after recording the LEGACY VALIDATION result. Skip Step 1 onwards.
+
 #### Step 1 — Locate the smoke list
 
 - [ ] Read `plan.md` §"Planned tests" → "Manual smoke tests" / "Smoke manual" list.
