@@ -152,9 +152,13 @@ An unlabelled deferral is a defect — operators rely on the label to separate t
 10. **COMMIT** — Stage and commit all changes on the feature branch:
    ```bash
    git add -A
+   # Unstage local-only pipeline artifacts — they are scratch files the orchestrator reads in
+   # place; committing them causes rebase conflicts + dirty-tree blocks + untracked collisions
+   # on later phases (check, fix, end-issue, re-merge rounds).
+   git reset -q -- .pipeline 'check-report.md' 'smokes*.md' 'end-issue-*.md' 2>/dev/null || true
    git commit -m "[ISSUE-ID]: <short description of what was implemented>"
    ```
-   This is MANDATORY. Every implementation session MUST end with a local commit on the feature branch. Do NOT push — that is END-ISSUE.
+   This is MANDATORY. Every implementation session MUST end with a local commit on the feature branch. Do NOT push — that is END-ISSUE. (Add `.pipeline/`, `check-report.md`, `smokes*.md`, `end-issue-*.md` to `.gitignore` if not already excluded.)
 
 ## Rules
 
