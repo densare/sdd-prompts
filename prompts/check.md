@@ -320,7 +320,7 @@ Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitH
 
 > Items that are acceptable to defer to a separate issue. NOT blockers — the code is good enough to merge.
 > Each deferral MUST have a Linear issue created by the reviewer during this check.
-> Each deferral Linear issue MUST carry the `tech-debt` label — see `SDD_DISCIPLINE.md` §Rule 3 (create the label in the team if missing, then apply during issue creation).
+> Each deferral Linear issue MUST carry the `tech-debt` label **plus every label its source issue carries** (an `F1` issue's deferral is `F1`; an epic child inherits the epic's label — read them via `linear.py get <SOURCE-ISSUE>`) — see `SDD_DISCIPLINE.md` §Rule 3 (create labels in the team if missing, then apply them all during issue creation).
 
 #### Deferral signals — actively look for these (audit-style 2026-05-31)
 
@@ -385,9 +385,9 @@ worth a deferral.
        --title "<deferral title>" \
        --description "<context + link to parent issue + scope>" \
        --priority 3 --estimate 2 \
-       --labels tech-debt
+       --labels "tech-debt,<each label the source issue/epic carries>"
      ```
-     The script auto-creates the `tech-debt` label in the team if missing (SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID. Capture the ID from stdout.
+     The script auto-creates the `tech-debt` label in the team if missing (SDD_DISCIPLINE.md §Rule 3) and applies every `--labels` entry during creation, then prints the new ID. Capture the ID from stdout. (Read the source's labels first: `linear.py get <SOURCE-ISSUE>` → `labels.nodes[].name`; an epic child inherits the epic's label.)
    - Record the issue ID in the Deferrals table of the report
    - Deferrals are NOT corrections — they are accepted work for a future cycle
 
