@@ -114,9 +114,10 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    - For each requirement, search source code for similar components
    - Decide by order: MODIFY > EXTEND > GENERALIZE > CREATE
    - **RED FLAG**: If plan has more NEW files than MODIFIED files -> STOP and review
-5. **CHECK CROSS-MODULE DEPENDENCIES**:
-   - For each dependency NOT_EXISTS or DRAFT: BLOCK
-   - For each dependency SPECIFIED: WARN
+5. **CHECK CROSS-MODULE / CROSS-REPO DEPENDENCIES** (see "Multi-Repo Scope" below):
+   - If the dependency is satisfiable WITHIN this issue by also changing a sibling repo present in the workspace (e.g. the host/shell repo at `../<repo>/`): do NOT block — add that repo to this plan's scope (see Multi-Repo Scope)
+   - For each dependency on a separate, UNMERGED issue, or in a repo NOT present in the workspace (NOT_EXISTS / DRAFT and not doable here): BLOCK
+   - For each dependency SPECIFIED (planned / in-flight elsewhere): WARN
 6. **ANALYZE** each requirement: map to concrete components, identify risks
 7. **QUALITY GATE** — Apply PLAN checklist:
    - Correct layers? (AP-06) — follow project's layer architecture from AGENTS.md
@@ -174,6 +175,14 @@ The split depends on mode:
 
 In both modes, this prompt **does not write production code** — only plan and document.
 
+## Multi-Repo Scope
+
+An issue MAY legitimately require changes in **more than one repo** — e.g. a module repo AND the host/shell repo it plugs into (a sibling checkout at `../<repo>/`), or vice-versa. This is **allowed**: one issue may change multiple repos.
+
+- A cross-repo need is **NOT** an automatic BLOCK and **NOT** a reason to split the work into a second issue. If doing the issue correctly requires the host to expose, publish, or refresh something the module consumes (or vice-versa), **include that change in THIS plan** and scope **both** repos.
+- Only **BLOCK** when the dependency is genuinely unavailable — it lives in a repo **not present in the workspace**, or it depends on a **separate, unmerged issue** — never merely because the change is "in the other repo" (e.g. "that package is consumed as a built artifact" is not a blocker when its source repo is checked out beside this one and can be rebuilt/republished).
+- In `plan.md`, the **Target repository** and **Files to create/modify** sections list **every** repo touched (group files by repo, with the sibling path). The ordered steps sequence the repos correctly — e.g. a host change + (re)publish of any consumed package BEFORE the module change that depends on it — and the final navigable smoke exercises the end-to-end result across repos.
+
 ## Rules
 
 - DO NOT write code — only plan and document
@@ -184,6 +193,7 @@ In both modes, this prompt **does not write production code** — only plan and 
 - **BLOCK** spec declares entry-points but plan does not wire them (AP-09)
 - **BLOCK** spec declares persisted field with 2+ write paths but plan has no centralized helper (AP-10)
 - **BLOCK** implementation order that does not end with "wire entry-points + navigable smoke"
+- **DO NOT BLOCK** on a cross-repo dependency that is doable within this issue (the other repo is checked out beside this one) — scope **both** repos instead (see Multi-Repo Scope). BLOCK only when it needs a separate, unmerged issue or a repo absent from the workspace.
 - >= 13 points: MANDATORY to split
 
 ## issues.md Template

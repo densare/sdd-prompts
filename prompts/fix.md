@@ -107,6 +107,10 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
 
 This phase ONLY fixes review findings and pushes. The workflow continues with CHECK re-review.
 
+## Multi-Repo Scope
+
+A review correction may touch MORE THAN ONE repo when the issue spans a module and its host (a sibling checkout at `../<repo>/`). Apply the flagged corrections in EACH repo the check-report covers: checkout/extend `feature/[ISSUE-ID]` in that repo (never reset / rebase / force-push), build + test it green, commit there. If a repo publishes a package the other consumes, rebuild/pack it so the consumer sees the fix. Done = corrections committed on `feature/[ISSUE-ID]` in every repo touched, each green.
+
 ## Rules
 
 - ONLY fix what the review flagged — don't add unrelated changes

@@ -156,6 +156,18 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    ```
    This is MANDATORY. Every implementation session MUST end with a local commit on the feature branch. Do NOT push — that is END-ISSUE.
 
+## Multi-Repo Implementation
+
+If the plan's "Files to modify" lists files in MORE THAN ONE repo — i.e. files outside this repo, in a sibling checkout at `../<repo>/` (a host/shell repo this module plugs into, or vice-versa) — this issue legitimately spans BOTH repos. This is allowed: one issue may change module + host. **Do NOT stop or treat it as out-of-scope just because part of the work is in the other repo.**
+
+For EACH repo the plan touches:
+- `cd` into it and create/checkout `feature/[ISSUE-ID]` the SAME way (`git checkout <default> && git pull && git checkout -b feature/[ISSUE-ID]`, or check out the existing branch and ADD commits). NEVER reset / rebase / `commit --amend` / force-push / `checkout -B` an existing branch — history is part of the deliverable.
+- Make the planned changes there, then BUILD and run that repo's FULL test suite green (commands from that repo's AGENTS.md).
+- If one repo publishes a package the other consumes, rebuild/pack it into the shared local package source so the consumer builds against the new version, and respect the plan's repo ordering (publisher before consumer).
+- Stage only the files you changed and commit on `feature/[ISSUE-ID]` in that repo.
+
+Done = your changes committed on `feature/[ISSUE-ID]` in EVERY repo you touched, each building green. Do NOT push, PR, or merge any of them — that is END-ISSUE.
+
 ## Rules
 
 - **NEVER work on `main`** — all implementation MUST happen on branch `feature/[ISSUE-ID]`
