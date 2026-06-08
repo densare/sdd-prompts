@@ -110,16 +110,15 @@ git fetch origin && git rebase origin/main
 
 If conflicts: resolve them.
 
-Check if rebase brought structural changes (project/build configuration files):
-- If YES: clean rebuild (see AGENTS.md for build commands)
-- If NO but rebase brought changes: incremental build
-- If rebase brought no changes: skip build
+The CHECK phase already verified build + the FULL test suite green on this branch. Re-verify only as much as the rebase actually warrants:
+- **Rebase brought NO changes** (branch already current — the common case): the check's green still holds. Do a **build-only** sanity check (see AGENTS.md); **do NOT re-run the full test suite** — it is redundant here and, on a large solution, the single slowest step.
+- **Rebase brought structural changes** (project/build configuration files): clean rebuild + run the **full test suite**.
+- **Rebase brought non-structural changes**: incremental build + run the **full test suite**.
+- **Format check** (see AGENTS.md for the format command, if applicable).
 
-In any case, run:
-- **Tests** (see AGENTS.md for test command)
-- **Format check** (see AGENTS.md for format command, if applicable)
+**CRITICAL — build/test are FOREGROUND, BLOCKING commands.** Run each one and **wait for its exit code within THIS turn**, then read the result and proceed. A headless run has **no notification, callback, or "build finished" event to wait for**: NEVER background the build/test (`&`, "run in background", "let me wait for the notification/build to finish") and end your turn — that aborts the end-issue mid-flight, leaving the branch un-pushed and the phase reported `UNKNOWN` (no merge). Block until the command returns its exit code.
 
-Fix errors until everything passes.
+Fix any errors until build + tests pass, then continue.
 
 ### 2. Stage files
 
@@ -216,6 +215,7 @@ git push origin --delete feature/[ISSUE-ID]
 - **NEVER** omit the PR URL from the output
 - **NEVER** force push (`--force`)
 - **NEVER** use `git add -A` (may include unintended files)
+- **NEVER** background the build/test or "wait for a notification/callback" for them to finish — they are foreground, blocking commands; block until they return in this turn. Headless runs have no async callback, so backgrounding them and ending the turn aborts the merge (phase reported `UNKNOWN`, branch un-pushed).
 - If any step fails: **STOP** and inform the user
 - If tests fail: fix BEFORE continuing
 
