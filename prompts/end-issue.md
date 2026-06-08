@@ -38,22 +38,22 @@ python "$ORCH_HOME/scripts/linear.py" create --team DenTherm --title "..." --des
 
 ## Deferral Hygiene
 
-If you open a Linear deferral during this phase (rare for end-issue but allowed — e.g., when verifying APPROVED WITH DEFERRALS surfaces additional items), the new issue **MUST** carry the `tech-debt` label (see `SDD_DISCIPLINE.md` §Rule 3 for rationale). One-liner via the helper script (auto-creates the label if missing):
+If you open a Linear deferral during this phase (rare for end-issue but allowed — e.g., when verifying APPROVED WITH DEFERRALS surfaces additional items), the new issue **MUST** carry the `tech-debt` label **plus every label its source issue carries** (a deferral of an `F1` issue is `F1`; an epic child inherits the **epic's** label — read them with `linear.py get <SOURCE-ISSUE>`). See `SDD_DISCIPLINE.md` §Rule 3 for rationale. One-liner via the helper script (auto-creates the label if missing):
 
 ```bash
 python "$ORCH_HOME/scripts/linear.py" create \
   --team DenTherm --title "<deferral title>" \
   --description "<context + link to parent + scope>" \
-  --priority 3 --estimate 1 --labels tech-debt
+  --priority 3 --estimate 1 --labels "tech-debt,<each label the source issue/epic carries>"
 ```
 
-When **verifying** existing deferrals from `check-report.md`: if any deferral Linear issue is missing the `tech-debt` label, apply it now (idempotent):
+When **verifying** existing deferrals from `check-report.md`: if any deferral Linear issue is missing the `tech-debt` label **or any label its source carries**, apply them now (idempotent):
 ```bash
-python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add tech-debt
+python "$ORCH_HOME/scripts/linear.py" label DT-NNN --add "tech-debt,<source labels>"
 ```
 Do not block merge over a missing label — fix it and proceed.
 
-An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work.
+An unlabelled deferral is a defect — and a deferral that drops its source's scope labels (e.g. `F1`) silently escapes that scope. Carry `tech-debt` **plus** the source's labels so operators' scope/tech-debt filters both stay correct.
 
 ## Locate Issue
 

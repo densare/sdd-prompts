@@ -21,17 +21,17 @@ Format: `<project> <ID>` — see AGENTS.md for available projects and ID format.
 
 ## Deferral Hygiene
 
-If you open a Linear deferral during this phase (specify often surfaces out-of-scope work that becomes a new issue), the new issue **MUST** carry the `tech-debt` label in its team's workspace (see `SDD_DISCIPLINE.md` §Rule 3 for the full rule and rationale):
+If you open a Linear deferral during this phase (specify often surfaces out-of-scope work that becomes a new issue), the new issue **MUST** carry the `tech-debt` label **plus every label its source issue carries** (a deferral of an `F1` issue is `F1`; an epic child inherits the **epic's** label) — read them with `linear.py get <SOURCE-ISSUE>` → `labels.nodes[].name`. See `SDD_DISCIPLINE.md` §Rule 3 for the full rule and rationale:
 
 **Use the orchestrator helper** `scripts/linear.py` (direct GraphQL, **zero context bloat**) — DO NOT use Linear MCP for batch create/update/label (each MCP call inflates session context):
 
 ```bash
-python "$ORCH_HOME/scripts/linear.py" create   --team DenTherm --title "<deferral title>"   --description "<why + scope + parent issue link>"   --priority 3 --labels tech-debt
+python "$ORCH_HOME/scripts/linear.py" create   --team DenTherm --title "<deferral title>"   --description "<why + scope + parent issue link>"   --priority 3 --labels "tech-debt,<each label the source issue/epic carries>"
 ```
 
-The script auto-creates the `tech-debt` label if missing (color #6e6e6e, description per SDD_DISCIPLINE.md §Rule 3) and applies it during creation, then prints the new ID.
+The script auto-creates the `tech-debt` label if missing (color #6e6e6e, description per SDD_DISCIPLINE.md §Rule 3) and applies every `--labels` entry during creation, then prints the new ID.
 
-An unlabelled deferral is a defect — operators rely on the label to separate the tech-debt backlog from feature work.
+An unlabelled deferral is a defect — and a deferral that drops its source's scope labels (e.g. `F1`) silently escapes that scope. Carry `tech-debt` **plus** the source's labels so operators' scope/tech-debt filters both stay correct.
 
 ## Locate the Request
 

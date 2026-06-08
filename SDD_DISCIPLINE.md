@@ -50,13 +50,20 @@ Classifying an edge case as *"pequena janela visual"* / *"small UX issue"* / *"u
 
 ---
 
-## Rule 3 — Every Linear deferral carries the `tech-debt` label
+## Rule 3 — Every Linear deferral carries `tech-debt` AND inherits its source issue's labels
 
-Any Linear issue you create as a **deferral** from an SDD phase (specify, plan, implement, check, fix, end-issue) **MUST** carry the `tech-debt` label in its team's workspace. No exceptions.
+Any Linear issue you create as a **deferral** from an SDD phase (specify, plan, implement, check, fix, end-issue) **MUST** carry:
+
+1. the `tech-debt` label in its team's workspace, **and**
+2. **every label its source issue carries.** A deferral of an `F1`-labelled issue is itself `F1`; of a `Bug` is `Bug`; etc. If the source's scope comes from a **parent epic** rather than its own label (epic children are often unlabelled), apply the **epic's** label too.
+
+No exceptions. The inherited scope labels go *on top of* `tech-debt`, never instead of it.
 
 ### Why
 
 Operators rely on the label to filter the orchestrator-generated tech-debt backlog separately from feature work (`backlog-followup.md`, queue triage, prioritisation reviews). A deferral without the label is invisible to that workflow — it pollutes the feature backlog and won't get picked up in tech-debt sweeps.
+
+The **label-inheritance** half (added 2026-06-08) closes the inverse leak: a deferral born from a scoped issue (e.g. an `F1`/release-tagged issue) but tagged only `tech-debt` silently *escapes* that scope — it vanishes from the release/scope view that drives what gets finished. Carrying the source's labels keeps the deferral inside the same scope filter as its origin. Incident: DT-761 (deferred from the F1 epic DT-750's child DT-756) was born `tech-debt`-only and nearly fell out of the F1 close-out set.
 
 Captured 2026-05-30 after the DT-582/DT-662/DT-663 incident where a deferral was opened twice (end-issue agent didn't know the operator had already opened DT-662, opened DT-663 as duplicate). The duplicate revealed that there was no machine-readable signal distinguishing tech-debt from real backlog.
 
@@ -69,8 +76,9 @@ When creating a Linear deferral via MCP (or any other path):
    - **name**: `tech-debt` (lowercase, hyphen, no spaces)
    - **color**: neutral grey (`#6e6e6e` is the canonical choice)
    - **description**: `Divida tecnica / deferral / cleanup — fora do roadmap de fases.`
-3. **Apply** the label to the new issue *during creation* (additional label IDs in the `labelIds` field of the create mutation), preserving any other labels the issue already has from templates.
-4. **Verify** post-create: the response payload includes the labels list — sanity-check it contains the tech-debt label ID. If absent, retry the label application as a separate mutation.
+3. **Read the source issue's labels** (`linear.py get <SOURCE-ISSUE>` → `labels.nodes[].name`). These must be carried onto the deferral. If the source is an epic child with no own labels, read the **parent epic's** labels instead and inherit those.
+4. **Apply** `tech-debt` **plus the inherited source labels** to the new issue *during creation* — pass them together via `--labels "tech-debt,<inherited…>"` (`linear.py create`), or the combined label IDs in the `labelIds` field of the MCP create mutation. Preserve any labels the issue already has from templates.
+5. **Verify** post-create: the response payload includes the labels list — sanity-check it contains `tech-debt` **and every inherited label**. If any is absent, retry the missing ones as a separate `linear.py label --add "<labels>" <DEFERRAL>` (or label mutation).
 
 This is a hard rule, not a recommendation: an unlabelled deferral is a defect. If the Linear MCP call fails to apply the label, do not proceed — surface the failure in the phase output so the operator can fix it.
 
