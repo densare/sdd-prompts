@@ -107,6 +107,14 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    - If **DIVERGENT**: STOP — present divergences to user
    - Record audit result at the top of plan.md
 
+0.5. **TRIAGE `por-triar`** (mandatory, runs on **EVERY** `/sdd-plan` invocation — independent of the request/issue being planned):
+   - List the open issues carrying the **`por-triar`** label via `scripts/linear.py` (§Linear Access). These are **ad-hoc** issues created outside the request→spec→plan flow (bugs/findings, legacy-mining, panel results) that still lack an **implementation timing**.
+   - For **EACH** such issue, give it a **timing** and then **remove the `por-triar` label**:
+     - the **increment `Ix.y`** it belongs to (default — `METODOLOGIA_ARTEFACTOS §3.bis(4)`: an issue that surfaced during an increment belongs to it), **OR** — if it is a defect of the **pre-SDD core** / outside the forward Onda roadmap — the **wave/trigger** that gates it, or the **active effort it blocks** (e.g. add a `blocks` relation to the V&V-parity issue);
+     - confirm its anchor exists (request/epic, or `Bug` + `area:*`);
+     - then **remove `por-triar`** via `linear.py` (it leaves the queue once it has a "when").
+   - Principle: **"zero sem-quando"** alongside **"zero órfãos"** — no issue without a timing. Governance source: `guidelines/METODOLOGIA_ARTEFACTOS.md §3.ter`.
+
 1. **READ** `sdd/ANTI_PATTERNS.md` — keep the anti-patterns in mind
 2. **READ** complete spec.md
 3. **VALIDATE CLASSIFICATION**: Confirm target repository
