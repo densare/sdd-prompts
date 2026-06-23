@@ -165,7 +165,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
 11. **LINEAR — diverges by mode:**
     - **Mode A:** CREATE LINEAR ISSUE(S). Title, description, estimate, labels. Record issue IDs in plan.md.
     - **Mode B:** issue already exists. Set state → `In Progress`. Do NOT create new issues unless audit splits the scope (rare; ask first).
-12. **Mode A only:** CREATE `issues.md` with table of Linear issues and implementation order.
+12. **Mode A only:** CREATE `issues.md` with table of Linear issues and implementation order. **Write the REAL Linear IDs** (e.g. `DS-501`) — never placeholders like `DS-CB-01`. **`issues.md` is a manifest, NOT a tracker: it MUST NOT carry issue STATE** (no "Backlog/Done", no "Linear deferred / local-only" banners). State lives only in Linear; this file carries the issue list + curated implementation order + the `ID→folder` anchor that `/sdd-implement`, `/sdd-fix` and `/sdd-end-issue` rely on.
 13. **Mode A only:** MOVE request folder to `em-implementacao/`.
 14. **Mode A only:** UPDATE `projectos/<project>/requests/README.md`.
 
@@ -207,6 +207,8 @@ An issue MAY legitimately require changes in **more than one repo** — e.g. a m
 
 ## issues.md Template
 
+`issues.md` is the request **manifest** — the list of its Linear issues + the curated implementation order + the `ID→folder` anchor. It carries **NO issue state** (state lives only in Linear). Use **real** Linear IDs, never placeholders.
+
 ```markdown
 # Issues: <ID> - <Title>
 
@@ -220,6 +222,8 @@ An issue MAY legitimately require changes in **more than one repo** — e.g. a m
 
 1. **XX-NNN** — <brief description>
 ```
+
+Do **not** add a status column or any "Linear deferred / local-only / IDs = —" banner — those rot and mislead (a stale "Linear deferred" banner once made an audit conclude issues were local-only when they were already in Linear).
 
 ## Output
 
