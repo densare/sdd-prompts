@@ -24,13 +24,17 @@ During the reformulation phase, to produce the real "alignment status" of a proj
 
 - **`projectos/<project>/FUNCIONALIDADES.md`** — the canonical functional map. Read the target epic's "Deve…" capabilities.
 - **`projectos/<project>/ARQUITETURA*.md`** — the v2 architecture constraints (e.g., neutral provider ports, cells, `(tenant,app)` keying) the capabilities must take.
-- **The reformulated requests** under `projectos/<project>/requests/**` for that epic (`request.md`/`spec.md`/`issues.md`). These define the deltas the reformulation expects.
+- **The reformulated requests** under `projectos/<project>/requests/**` for that epic — **INCLUDING `em-analise/` (staging)**. A capability may have a request that was planned (has `issues.md`) but **never seeded to Linear** → it is **invisible in a Linear-only view**, and that is exactly the gap to catch (it is how P-AUTH "looked closed" while SVC/C2/headless/(tenant,app) were unbuilt). Cross **FUNCIONALIDADES (capability) ↔ requests (incl. em-analise) ↔ Linear ↔ `origin/main` code** — a coverage check, not just a code-quality review.
+
+## Sizing (this is a "big-picture" 2nd pass — fit the reviewer's context)
+
+This audit reads a coherent chunk holistically. Keep the **material (origin/main code + spec + requests) ≤ ~150–180k tokens** so it fits a reviewer with room to reason (binding reviewer = **kimi 250k**; opus/codex ~200k; gemini ~1M). Before starting, sanity-check the size (`git show` files + specs, chars ÷ ~3.5); **if a big epic overflows (e.g. ~164pts ≈ ~200k+ tokens of code), split it into 2 audits**. Don't fill the window — fidelity drops near the limit.
 
 ## Behavior
 
-1. Identify the target epic/request and its capabilities (from FUNCIONALIDADES + requests).
+1. Identify the target epic/request and its capabilities (from FUNCIONALIDADES + requests, **incl. em-analise staging**).
 2. `git fetch` the code repo(s); locate the relevant code in `origin/main` (`ls-tree` + `show`).
-3. Check Linear for the related issues' real state (context, not the verdict).
+3. Check Linear for the related issues' real state (context, not the verdict) — and note capabilities/requests with **zero Linear issues** (planned-but-unseeded = a real gap).
 4. For **each capability** and **each reformulated request**, assign a verdict:
 
 | Verdict | Meaning |
