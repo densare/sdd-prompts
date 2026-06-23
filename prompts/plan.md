@@ -165,7 +165,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
 11. **LINEAR — diverges by mode:**
     - **Mode A:** CREATE LINEAR ISSUE(S). Title, description, estimate, labels. Record issue IDs in plan.md.
     - **Mode B:** issue already exists. Set state → `In Progress`. Do NOT create new issues unless audit splits the scope (rare; ask first).
-12. **Mode A only:** CREATE `issues.md` with table of Linear issues and implementation order. **Write the REAL Linear IDs** (e.g. `DS-501`) — never placeholders like `DS-CB-01`. **`issues.md` is a manifest, NOT a tracker: it MUST NOT carry issue STATE** (no "Backlog/Done", no "Linear deferred / local-only" banners). State lives only in Linear; this file carries the issue list + curated implementation order + the `ID→folder` anchor that `/sdd-implement`, `/sdd-fix` and `/sdd-end-issue` rely on.
+12. **Mode A only:** `issues.md` is **TEMPORARY STAGING** to draft the issues — NOT a living artifact. Lifecycle: (a) write `issues.md` to compose the issues + order; (b) **SEED them into Linear PROMPTLY** (staging is transient, never a parking lot — an `issues.md` left unseeded makes the work INVISIBLE in Linear); (c) once seeded, **DISCARD the file OR stamp it** at the top: `> **Seeded to Linear: <date>.** ⚠️ Linear is the truth — this file may be stale from this date on. Not a state source.` It MUST NOT carry issue STATE (no "Backlog/Done", no "Linear deferred / local-only" banners) and MUST use REAL Linear IDs (never `DS-CB-01` placeholders). The `ID→folder` anchor moves to a Linear **label `request:<id>`**; the implementation order lives in **`plan.md` (§Order)** — neither needs a parallel file that rots.
 13. **Mode A only:** MOVE request folder to `em-implementacao/`.
 14. **Mode A only:** UPDATE `projectos/<project>/requests/README.md`.
 
@@ -205,25 +205,23 @@ An issue MAY legitimately require changes in **more than one repo** — e.g. a m
 - **DO NOT BLOCK** on a cross-repo dependency that is doable within this issue (the other repo is checked out beside this one) — scope **both** repos instead (see Multi-Repo Scope). BLOCK only when it needs a separate, unmerged issue or a repo absent from the workspace.
 - >= 13 points: MANDATORY to split
 
-## issues.md Template
+## issues.md Template (TEMPORARY staging — discard or stamp after seeding)
 
-`issues.md` is the request **manifest** — the list of its Linear issues + the curated implementation order + the `ID→folder` anchor. It carries **NO issue state** (state lives only in Linear). Use **real** Linear IDs, never placeholders.
+`issues.md` is **temporary staging** to draft the issues before they go to Linear. After seeding, **discard it OR stamp it stale** (see step 12). It is NOT a manifest, NOT a tracker, carries **NO state**, uses **real** Linear IDs. The `ID→folder` anchor lives in a Linear label `request:<id>`; the implementation order lives in `plan.md`.
 
 ```markdown
-# Issues: <ID> - <Title>
+# Issues (staging): <ID> - <Title>
+
+> **Seeded to Linear: <date>.** ⚠️ Linear is the truth — may be stale from this date. Not a state source. (Omit this line only while still un-seeded; delete the file once seeded if you prefer.)
 
 ## Linear Issues
 
 | # | Issue | Title | Repository |
 |---|-------|-------|------------|
 | 1 | [XX-NNN](linear-url) | <title> | <repo> |
-
-## Implementation Order
-
-1. **XX-NNN** — <brief description>
 ```
 
-Do **not** add a status column or any "Linear deferred / local-only / IDs = —" banner — those rot and mislead (a stale "Linear deferred" banner once made an audit conclude issues were local-only when they were already in Linear).
+Do **not** add a status column or any "Linear deferred / local-only / IDs = —" banner — those rot and mislead (a stale "Linear deferred" banner once made an audit conclude issues were local-only when they were already in Linear). Do **not** leave an un-seeded `issues.md` lingering — seed promptly or the work is invisible in Linear.
 
 ## Output
 
