@@ -1,0 +1,5 @@
+# Line-endings (2026-06-27): shell scripts MUST be LF. CRLF (Windows/OneDrive sync) parte
+# o bash `set -o pipefail` -> "invalid option name" -> pre-push hook morre -> merges do Forge estancam.
+*.sh   text eol=lf
+*.bash text eol=lf
+*.zsh  text eol=lf
