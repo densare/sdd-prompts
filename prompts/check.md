@@ -162,11 +162,12 @@ Continue to "Anti-patterns" gate after recording the LEGACY VALIDATION result. S
 
 #### Step 1 — Locate the smoke list
 
-- [ ] Read `plan.md` §"Planned tests" → "Manual smoke tests" / "Smoke manual" list.
-- [ ] If the list is **empty** AND the issue body has observable acceptance criteria (e.g., "lista mostra X", "painel abre Y", "edit field → value persists"):
+- [ ] **Source of truth = the spec's Acceptance Criteria (CA) and their `Prova:` line.** Each `[bloqueia-close]` CA must be verified by the proof it declares: `automated test` → confirm it runs green; `regression-oracle` / `validate-against-legacy` → take the Legacy Validation Path (Step 0); `benchmark` → run/confirm the metric under the stated conditions; `manual smoke` → present it in Step 2. A blocking CA with no executed Prova = **not APPROVED**.
+- [ ] Read `plan.md` §"Planned tests" → "Manual smoke tests" / "Smoke manual" list (the plan should have seeded these from the CA Prova lines).
+- [ ] If the list is **empty** AND the issue body / spec has observable acceptance criteria (e.g., "lista mostra X", "painel abre Y", "edit field → value persists"):
   - This is a **plan deficiency**. Flag in `Spec Deviations`.
-  - **STOP** and derive smokes from the acceptance criteria yourself, then proceed to Step 2 (do NOT skip smoke gate just because plan is incomplete).
-- [ ] If both empty (no smokes planned AND no observable acceptance criteria — e.g., pure refactor with unit-test coverage): document as "Smoke: N/A (no observable behavior)" in the report and skip to anti-patterns.
+  - **STOP** and derive smokes from the CA / acceptance criteria yourself, then proceed to Step 2 (do NOT skip smoke gate just because plan is incomplete).
+- [ ] If both empty (no CA/smokes AND no observable acceptance criteria — e.g., pure refactor with unit-test coverage): document as "Smoke: N/A (no observable behavior)" in the report and skip to anti-patterns.
 
 #### Step 2 — Present the smoke list to the operator as numbered step-by-step recipes (one per smoke)
 

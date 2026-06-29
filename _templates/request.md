@@ -1,55 +1,82 @@
-# Pedido: [Nome curto da funcionalidade]
+# Pedido: [Nome curto e concreto da funcionalidade]
 
-> **Data**: [DATA]
-> **Pedido por**: [NOME]
-> **Prioridade**: Alta / Media / Baixa
-
----
-
-## O que preciso?
-
-[Descrever em 2-3 frases simples o que quer fazer. Usar linguagem do dia-a-dia.]
-
-**Exemplo**: "Preciso que os utilizadores possam fazer login com email e password em todos os produtos Densare."
+> **Data**: [DATA] · **Pedido por**: [NOME] · **Prioridade**: Alta / Media / Baixa
+> **Capacidade-mae**: [ID estavel da capacidade no Mapa Funcional, ex.: `CAP-<APP>-<EPIC>-<NNN>`]
 
 ---
 
-## Porque preciso disto?
+## 1. Objetivo / Job Story
 
-[Explicar o problema que isto resolve ou o beneficio que traz.]
+<!-- Produto/user-facing → Job Story. Trabalho tecnico (refactor/migracao/infra) → frase de Objetivo direta. NAO inventar utilizador onde nao ha. -->
 
-**Exemplo**: "Sem login centralizado, cada produto teria de implementar autenticacao de raiz, com duplicacao de codigo e inconsistencia."
+Quando [situacao real], quero [acao/capacidade], para [resultado].
 
----
-
-## Como imagino que funcione?
-
-[Descrever como gostaria que funcionasse, passo a passo.]
-
-**Exemplo**:
-1. Utilizador abre um produto Densare
-2. Aparece ecra de login
-3. Insere email e password
-4. Fica autenticado em todos os produtos
+**Exemplo**: "Quando partilho um link encurtado, quero que o visitante seja reencaminhado quase instantaneamente, para nao perder cliques."
 
 ---
 
-## O que deve aparecer no resultado?
+## 2. Porque preciso disto?
 
-[Descrever o que espera ver no final.]
-
-**Exemplo**: "Um sistema de login unico que funcione para todos os produtos, com password reset via email."
+[Problema que resolve ou beneficio que traz. Omitir se trivial.]
 
 ---
 
-## Informacao adicional (opcional)
+## 3. Criterios de Aceitacao — o contrato de "funciona"
 
-[Qualquer outra coisa relevante: restricoes, referencias, exemplos de outros sistemas.]
+> O coracao do pedido. Cada criterio (CA) e um cenario **verificavel** em linguagem de negocio.
+> **Regras**: **1 CA = 1 obrigacao** (nao misturar). Os **erros / edge cases** e os **requisitos nao-funcionais que bloqueiam** (performance, seguranca, idioma/formato local) sao **CA proprios**, nao notas. Marcar `[bloqueia-close]` nos que travam o fecho.
+> Cada CA carrega uma linha **Prova** — *o que demonstra que passou*. Sem prova executavel, o CA e vago: reescrever. (O detalhe tecnico da prova vive na spec; aqui basta o tipo + os dados + onde se observa.)
+
+### CA-01 — [nome curto]  [bloqueia-close]
+- **Dado** [estado inicial completo]
+- **Quando** [uma acao]
+- **Entao** [um resultado observavel e mensuravel — unidade, codigo de erro, header, valor]
+- **Prova**: [teste automatico | oraculo de regressao | benchmark | smoke manual] · [fixture/dados] · [onde se observa]
+
+### CA-02 — [nome curto]  [bloqueia-close]
+- **Dado** ... **Quando** ... **Entao** ...
+- **Prova**: ...
+
+<!-- ... tantos quantos forem precisos. -->
+
+> **Calculo regulado / com valor legal** (resultado tem de bater uma referencia): acrescentar um CA de **nao-regressao** — "toda a suite de oraculos de referencia mantem-se dentro da tolerancia aprovada; qualquer diferenca exige aprovacao do dono". Oraculos identificados por **ID/versao estaveis** (nao por nome). No veredicto que cruza um limite legal, a tolerancia e **zero**.
+
+---
+
+## 4. Dependencias
+
+> Secao propria (nao "nota"): se uma dependencia falha, o pedido falha. Escrever "Nenhuma" se nao houver.
+
+| Dependencia | Estado | Owner | Como testar se indisponivel |
+|-------------|--------|-------|-----------------------------|
+| [ex.: auth-service (JWT)] | DONE / em curso | [quem] | [mock / stub / fixture] |
+
+---
+
+## 5. Fora de Ambito (explicito)
+
+- **Excluido**: [nao entra de todo]
+- **Preparado mas nao implementado / divida conhecida**: [...] (→ pedido separado, se aplicavel)
+
+---
+
+## 6. Questoes em aberto
+
+> Cada uma diz o que **bloqueia**.
+
+- [ ] [Questao] — **bloqueia**: request | spec | implement | check · **owner**: [quem]
 
 ---
 
 <!--
 NOTA PARA A EQUIPA TECNICA:
-Este pedido sera analisado e convertido num spec.md tecnico.
-Usar /specify <task-name> para iniciar a analise.
+Este pedido sera convertido num spec.md tecnico via /specify.
+Cada CA deste pedido mapeia para um RF na spec (RF ↔ CA bidirecional: nenhum CA sem RF, nenhum RF sem CA).
+A linha "Prova" de cada CA torna-se a verificacao executada em /sdd-check e listada em /sdd-close.
+
+VARIANTE BUG (defeito em funcionalidade existente — vai direto ao tracker, sem pasta de request):
+  ## Reproducao: passos + ambiente
+  ## Atual vs esperado
+  ## CA-01 — Nao reproduz [bloqueia-close]: Dado <repro> Quando <acao> Entao <esperado>
+     Prova: teste de regressao que falha hoje e passa depois da correcao
 -->

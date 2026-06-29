@@ -28,18 +28,25 @@
 
 ## Requisitos Funcionais
 
+> **RF ↔ CA bidirecional (obrigatorio)**: cada RF referencia o(s) CA do request que satisfaz (`CA-NN`), e cada CA do request mapeia para um RF. **Nenhum RF sem CA** (= requisito nao-testavel) e **nenhum CA orfao**. Cada criterio carrega uma linha **Prova** — o mecanismo que o demonstra; e isso que `/sdd-check` executa e `/sdd-close` lista. **1 CA = 1 obrigacao.**
+
 ### RF-01: [Nome do Requisito]
 **Descricao**: [O que o sistema deve fazer]
+**Satisfaz**: CA-01 [, CA-NN do request]
 
 **Criterios de Aceitacao**:
-- [ ] Dado [contexto], quando [acao], entao [resultado esperado]
-- [ ] Dado [contexto], quando [acao], entao [resultado esperado]
+- [ ] **CA-01** — Dado [contexto], quando [acao], entao [resultado mensuravel]
+  **Prova**: [teste automatico | oraculo de regressao | benchmark | smoke manual] · [fixture/dados] · [onde se observa]
 
 ### RF-02: [Nome do Requisito]
 **Descricao**: [O que o sistema deve fazer]
+**Satisfaz**: CA-NN
 
 **Criterios de Aceitacao**:
-- [ ] ...
+- [ ] **CA-NN** — Dado ..., quando ..., entao ...
+  **Prova**: ...
+
+> **Calculo regulado** (resultado com valor legal): incluir um **CA de nao-regressao** — "toda a suite de oraculos mantem-se dentro da tolerancia aprovada; qualquer diff exige aprovacao do dono" (Prova = runner de regressao/legacy em CI, label `validate-against-legacy`). Oraculos por ID/versao estaveis; **tolerancia zero** no veredicto que cruza um limite legal; comparar tambem **parcelas intermedias**, nao so o total (erros que se compensam batem o total e escondem o bug).
 
 ---
 
