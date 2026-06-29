@@ -63,7 +63,8 @@ Search for the request file in `projectos/<project>/requests/` (in order):
 7. **ANALYZE** and identify:
    - Implicit requirements in the request
    - Ambiguities to clarify with the user
-   - Acceptance criteria (Given/When/Then)
+   - **Map RF ↔ CA bidirectionally**: every RF references the request CA it satisfies (`Satisfaz: CA-NN`); every request CA maps to an RF. **No RF without a CA** (untestable requirement) and **no orphan CA**. Carry each CA's **Prova** line (test / regression-oracle / benchmark / smoke + fixture) into the spec — it is what `/sdd-check` will execute. **1 CA = 1 obligation** (split composite CA).
+   - **Regulated calculation** (legally-valued result): require a non-regression CA (full oracle suite within approved tolerance; oracles by stable ID; zero tolerance on a verdict crossing a legal limit; compare intermediate parts, not only the total). This maps to the `validate-against-legacy` path in `/sdd-check`.
    - Unconsidered edge cases
    - Technical dependencies
    - Cross-module dependencies
@@ -90,6 +91,8 @@ Search for the request file in `projectos/<project>/requests/` (in order):
    - Entry-points enumerated for every user-observable RF? (AP-09)
    - Storage semantics declared for every persisted field? (AP-10)
    - Round-trip edge cases (EC-RT1..RT4) present or justifiably absent? (AP-10)
+   - **Every RF maps to ≥1 CA and every request CA maps to an RF (bidirectional)? Every CA has a Prova line? (no Prova = vague CA, BLOCK)**
+   - **Blocking non-functional needs (performance/security/local-format) expressed as CA, not buried in prose?**
 11. **CLARIFY** with user if necessary
 12. **ASK** for confirmation to mark as SPECIFIED
 

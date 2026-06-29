@@ -51,9 +51,10 @@ For EACH issue: query status. ALL must be Done (or Cancelled with justification)
 If any NOT Done: STOP and list pending issues.
 
 ### 3. Completion Mini-Audit
-1. **Spec requirements covered?** — search for evidence in code
-2. **Tests exist?** — search for test files from plan.md
-3. **PRs merged?** — verify on GitHub
+1. **Every `[bloqueia-close]` CA verified by its Prova?** — for each Acceptance Criterion in the spec, confirm its `Prova:` was executed (test green / oracle diff clean / benchmark met / smoke PASS in `/sdd-check`). **This is the gate that kills "Done ≠ funciona".** A blocking CA without an executed Prova → REJECTED.
+2. **Spec requirements covered?** — every RF maps to a verified CA (search for evidence in code)
+3. **Tests exist?** — search for test files from plan.md
+4. **PRs merged?** — verify on GitHub
 
 ### 4. Produce Report
 
@@ -68,10 +69,15 @@ If any NOT Done: STOP and list pending issues.
 |-------|-------|--------|----|
 | <ID> | <title> | Done/Cancelled | merged/N/A |
 
+### Acceptance Criteria (verified by Prova)
+| CA | Bloqueia-close? | Prova | Verified |
+|----|-----------------|-------|----------|
+| CA-01 | yes | <test / oracle / benchmark / smoke> | PASS / FAIL / N/A |
+
 ### Mini-Audit
-| Requirement | Evidence | Status |
-|-------------|----------|--------|
-| RF-01 | <file:line or N/A> | OK / Not found |
+| Requirement | CA | Evidence | Status |
+|-------------|----|----------|--------|
+| RF-01 | CA-01 | <file:line or N/A> | OK / Not found |
 
 ### Tests
 | Test File | Exists? |
@@ -98,6 +104,7 @@ APPROVED FOR CLOSE / REJECTED (with reasons)
 - DON'T run builds or tests (CHECK and END-ISSUE already did that)
 - If code repo not accessible: mark as "Not verifiable" but continue
 - If issue Cancelled: accept IF justified in Linear
+- **REJECT if any `[bloqueia-close]` CA has no executed Prova** — a CA silently relaxed/removed after approval (e.g. a loosened threshold) requires an owner-approved note in the request; without it, REJECT.
 
 ## Output
 
