@@ -1,6 +1,6 @@
 # Pedido: Areas e Volumes da fracao
 
-> **Estado**: em-analise · **Pedido por**: Nuno Januario · **Owner funcional**: Nuno Januario · **Data**: 2026-02-10
+> **Estado**: em-analise · **Pedido por**: Nuno Nunes · **Owner funcional**: Nuno Nunes · **Data**: 2026-02-10
 > **Dominio**: AEC · **Area**: THERMAL · **Camada**: UI · **Regulado**: nao
 > **Capacidade-mae**: `FUNCIONALIDADES.md` -> `CAP-DT-C-002` ("Deve permitir introduzir area util, pe-direito e volume da fracao")
 
