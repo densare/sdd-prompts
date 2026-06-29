@@ -1,7 +1,16 @@
 # Pedido: [Nome curto e concreto da funcionalidade]
 
-> **Data**: [DATA] · **Pedido por**: [NOME] · **Prioridade**: Alta / Media / Baixa
-> **Capacidade-mae**: [ID estavel da capacidade no Mapa Funcional, ex.: `CAP-<APP>-<EPIC>-<NNN>`]
+> **Estado**: rascunho | em-analise | aprovado | em-implementacao | superseded | cancelado
+> **Pedido por**: [NOME] · **Owner funcional**: [NOME] · **Data**: [AAAA-MM-DD]
+> **Dominio**: AEC | Cloud   ·   **Area**: THERMAL | SIM | CORE | PLATFORM | APP:<produto> | ADMIN | SDK
+> **Camada**: Dominio | API | UI | SDK   ·   **Regulado**: sim | nao
+> **Capacidade-mae**: `FUNCIONALIDADES.md` → `CAP-<APP>-<EPIC>-<NNN>` ("<linha 'Deve fazer Y'>")
+
+<!-- `Regulado: sim` (calculo com valor legal) obriga ao addendum de nao-regressao nos CA (ver seccao 3). -->
+<!-- Prioridade vive no Linear, nao no request (nao duplicar estado). -->
+<!-- Escalonamento (nao encher de cerimonia): Nucleo = 1 capacidade, 1-3 CA, sem deps/NF/regulacao. Completo = feature/regulado/toca deps ou NF. Bug = variante no fim deste ficheiro. -->
+<!-- Variante de cabecalho generica (fora-Densare): Estado · Pedido por · Owner · Data · Capacidade-mae. Os campos Dominio/Area/Camada/Regulado sao a taxonomia Densare. -->
+
 
 ---
 
@@ -65,6 +74,14 @@ Quando [situacao real], quero [acao/capacidade], para [resultado].
 > Cada uma diz o que **bloqueia**.
 
 - [ ] [Questao] — **bloqueia**: request | spec | implement | check · **owner**: [quem]
+
+---
+
+## 7. Notas (so contexto NAO-normativo)
+
+<!-- Nada que bloqueie close vive aqui. Se bloqueia → e CA, dependencia, ou fora-de-ambito. -->
+
+[Contexto de fundo, referencias, valores tipicos. Opcional.]
 
 ---
 
