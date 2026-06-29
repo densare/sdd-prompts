@@ -1,8 +1,9 @@
 # Spec: [TASK-NAME]
 
 > **Estado**: DRAFT | SPECIFIED
-> **Classificacao**: [PLATFORM] | [APP] | [ADMIN] | [SDK]
-> **Repositorio**: densare-platform | densare-apps | densare-admin | densare-sdk-dotnet
+> **Classificacao**: Cloud: [PLATFORM] | [APP] | [ADMIN] | [SDK]  ·  AEC: [CORE] | [THERMAL] | [SIM]
+> **Repositorio**: Cloud: densare-platform | densare-apps | densare-admin | densare-sdk-dotnet  ·  AEC: denstudio-core | dentherm | densim | denstudio | dendraw
+> **Regulado**: sim | nao  (herda do request; `sim` obriga CA de nao-regressao V&V — ver Requisitos Funcionais)
 > **Criado**: [DATA]
 
 ---
