@@ -58,8 +58,13 @@ O request original indicava [CORE], mas:
 
 ## Requisitos Funcionais
 
+> **RF ↔ CA bidirecional (obrigatorio)**: cada RF referencia o(s) CA do request que satisfaz (`Satisfaz: CA-NN`), e cada CA do request mapeia para um RF. **Nenhum RF sem CA** (= requisito nao-testavel) e **nenhum CA orfao**. Cada criterio carrega a linha **Prova** do request — o mecanismo que o demonstra; e isso que `/sdd-check` executa e `/sdd-close` lista. **1 CA = 1 obrigacao.**
+>
+> Mapa deste spec: CA-01→RF-01 · CA-02,CA-03→RF-02 · CA-04→RF-03 · CA-05→RF-04 · CA-06→RF-05.
+
 ### RF-01: Campos de Areas e Volume
-**Descricao**: Seccao "Areas e Volumes" no painel de detalhe da fracao com campos editaveis.
+**Descricao**: Seccao "Areas e Volumes" no painel de detalhe da fracao com campos editaveis (Ap, Ag, pe-direito, V), unidades visiveis, valores atuais carregados.
+**Satisfaz**: CA-01
 
 **Campos**:
 | Campo | Propriedade | Tipo | Obrigatorio | Validacao | Unidade |
@@ -70,58 +75,68 @@ O request original indicava [CORE], mas:
 | Volume (V) | Volume | double | Sim | > 0 | m3 |
 
 **Criterios de Aceitacao**:
-- [ ] Dado uma fracao seleccionada, quando o painel de detalhe abre, entao a seccao "Areas e Volumes" mostra os 4 campos com valores actuais
-- [ ] Dado Ap = 0 (fracao nova), quando o utilizador tenta navegar para calculos, entao recebe aviso de campo obrigatorio
-- [ ] Dado Ag preenchido < Ap, quando o utilizador sai do campo, entao mostra erro "Ag deve ser >= Ap"
+- [ ] **CA-01** — Dado uma fracao com Ap=100, Ag=120, V=270, quando o painel de detalhe abre, entao a seccao "Areas e Volumes" mostra os 4 campos com esses valores e as unidades (m2, m, m3)
+  **Prova**: smoke manual · projeto-fixture com a fracao acima · observar o painel aberto
 
-### RF-02: Calculo Automatico do Volume
-**Descricao**: V = Ap x pe-direito. O utilizador pode: (a) introduzir pe-direito e V calcula automaticamente, ou (b) introduzir V directamente e pe-direito calcula como V/Ap.
-
-**Criterios de Aceitacao**:
-- [ ] Dado Ap = 100 e pe-direito = 2.7, quando o utilizador confirma, entao V = 270.0 m3
-- [ ] Dado Ap = 100 e V = 300 (introduzido manualmente), quando o utilizador confirma, entao pe-direito mostra 3.0 m
-- [ ] Dado que o utilizador altera Ap, quando o campo perde foco, entao V recalcula (V = Ap x pe-direito actual)
-
-### RF-03: Persistencia
-**Descricao**: Os valores introduzidos sao guardados no SceFraction e persistem com o projecto.
+### RF-02: Calculo Automatico do Volume / Pe-direito
+**Descricao**: V = Ap x pe-direito. O utilizador pode (a) introduzir pe-direito e V calcula automaticamente, ou (b) introduzir V diretamente e pe-direito calcula como V/Ap. Separador decimal PT (virgula).
+**Satisfaz**: CA-02, CA-03
 
 **Criterios de Aceitacao**:
-- [ ] Dado que o utilizador preenche Ap e V, quando guarda o projecto e reabre, entao os valores estao preservados
-- [ ] Dado que o utilizador altera Ap, quando o valor muda, entao o projecto fica marcado como dirty
+- [ ] **CA-02** — Dado Ap=100, quando se introduz pe-direito=2,7, entao V mostra 270,0 m3
+  **Prova**: teste auto do ViewModel · caso (Ap=100, pe=2,7) -> V=270,0
+- [ ] **CA-03** — Dado Ap=100, quando se introduz V=300 manualmente, entao pe-direito mostra 3,0 m e o V manual prevalece
+  **Prova**: teste auto do ViewModel · caso (Ap=100, V=300) -> pe=3,0
 
-### RF-04: Integracao com Motor de Calculo
+### RF-03: Validacao de Area Bruta
+**Descricao**: Ag, se preenchido, tem de ser >= Ap; caso contrario erro e o valor nao e aceite.
+**Satisfaz**: CA-04
+
+**Criterios de Aceitacao**:
+- [ ] **CA-04** — Dado Ap=100, quando se introduz Ag=80 e se sai do campo, entao mostra "Area bruta deve ser >= Area util" e o valor nao e aceite
+  **Prova**: teste auto de validacao · caso (Ap=100, Ag=80)
+
+### RF-04: Persistencia
+**Descricao**: Os valores introduzidos sao guardados no SceFraction e persistem com o projeto.
+**Satisfaz**: CA-05
+
+**Criterios de Aceitacao**:
+- [ ] **CA-05** — Dado Ap=100 e V=270 preenchidos, quando se guarda o projeto e se reabre, entao os valores estao preservados
+  **Prova**: teste auto de round-trip (guardar -> ler) · assercao sobre SceFraction
+
+### RF-05: Integracao com Motor de Calculo
 **Descricao**: Os valores de Ap, Ag e V alimentam GeometricProperties do RehEngine.
+**Satisfaz**: CA-06
 
 **Criterios de Aceitacao**:
-- [ ] Dado SceFraction com Ap=100, Ag=120, V=270, quando o motor de calculo arranca, entao GeometricProperties recebe NetFloorArea=100, GrossFloorArea=120, NetHeatedVolume=270
+- [ ] **CA-06** — Dado SceFraction com Ap=100, Ag=120, V=270, quando o motor de calculo arranca, entao GeometricProperties recebe NetFloorArea=100, GrossFloorArea=120, NetHeatedVolume=270
+  **Prova**: teste auto de integracao · assercao sobre GeometricProperties
+
+> **Calculo regulado** (resultado com valor legal): incluir um **CA de nao-regressao** — "toda a suite de oraculos mantem-se dentro da tolerancia aprovada; qualquer diff exige aprovacao do dono" (Prova = runner de regressao/legacy em CI, label `validate-against-legacy`). Oraculos por ID/versao estaveis; **tolerancia zero** no veredicto que cruza um limite legal; comparar tambem **parcelas intermedias**, nao so o total. *(Nao se aplica a esta task — C2 e input de UI, nao calculo; serve de lembrete para specs THERMAL de calculo.)*
 
 ---
 
 ## Requisitos Nao-Funcionais
 
 ### RNF-01: Performance
-- Recalculo de V ao mudar Ap ou pe-direito: instantaneo (< 10ms)
-- Nenhuma operacao I/O no recalculo
+- Recalculo de V ao mudar Ap ou pe-direito: instantaneo (< 10ms), sem I/O. *(Nao bloqueia close — nao e CA; se viesse a bloquear, viraria CA com Prova = benchmark.)*
 
 ### RNF-02: Usabilidade
-- Campos numericos com spinner (up/down) e input directo
-- Unidades visiveis junto ao campo (m2, m, m3)
-- Tab order logico: Ap -> pe-direito -> V -> Ag
-- Pe-direito com default 2.7 m para fracoes novas
+- Campos numericos com spinner e input directo; unidades visiveis; tab order Ap -> pe -> V -> Ag; pe-direito default 2,7 m em fracoes novas.
 
 ---
 
 ## Edge Cases
 
-| # | Cenario | Comportamento Esperado |
-|---|---------|------------------------|
-| EC-01 | Fracao nova (todos os valores = 0) | Campos vazios, pe-direito pre-preenche 2.7m, V=0 ate Ap ser preenchido |
-| EC-02 | Ap alterado para 0 | Erro de validacao, V nao recalcula, pe-direito preservado |
-| EC-03 | Pe-direito fora de range (ex: 0.5 ou 15.0) | Erro "Pe-direito deve estar entre 1.5 e 10.0 m" |
-| EC-04 | V introduzido manualmente sem Ap | Erro — Ap e obrigatorio |
-| EC-05 | Ag < Ap | Erro "Area bruta deve ser >= Area util" |
-| EC-06 | Valores muito grandes (Ap = 50000) | Erro acima de 10000 m2 |
-| EC-07 | Utilizador altera Ap e depois V manualmente | V manual prevalece; pe-direito recalcula como V/Ap |
+| # | Cenario | Comportamento Esperado | CA |
+|---|---------|------------------------|----|
+| EC-01 | Fracao nova (valores = 0) | Campos vazios, pe-direito pre-preenche 2,7m, V=0 ate Ap ser preenchido | (RF-01) |
+| EC-02 | Ap alterado para 0 | Erro de validacao, V nao recalcula, pe-direito preservado | (RF-02) |
+| EC-03 | Pe-direito fora de range (0.5 ou 15.0) | Erro "Pe-direito deve estar entre 1.5 e 10.0 m" | (RF-02) |
+| EC-04 | V manual sem Ap | Erro — Ap e obrigatorio | (RF-02) |
+| EC-05 | Ag < Ap | Erro "Area bruta deve ser >= Area util" | CA-04 |
+| EC-06 | Valores muito grandes (Ap = 50000) | Erro acima de 10000 m2 | (RF-01) |
+| EC-07 | Ap e depois V manual | V manual prevalece; pe-direito recalcula como V/Ap | CA-03 |
 
 ---
 
@@ -133,19 +148,13 @@ O request original indicava [CORE], mas:
 - [x] Dirty tracking (ja implementado — IDirtyTrackable)
 
 ### Dependencias de Outras Tasks
-- [ ] **B3** (Gestao de Fracoes) — painel de detalhe da fracao. C2 adiciona campos ao painel criado por B3.
+- [ ] **B3** (Gestao de Fracoes) — painel de detalhe da fracao. C2 adiciona campos ao painel criado por B3. **Nao bloqueante**: ate B3, carrega a fracao unica do projeto via LoadFrom() (ver request §4).
 
 ### Dependencias Cross-Module
-
-Nenhuma. Tudo vive no `dentherm`:
-- Modelo: `DenTherm.Sce.Core.Domain.Entities.SceFraction`
-- UI: `DenTherm.UI.ViewModels` / `DenTherm.UI.Views.Panels`
+Nenhuma. Tudo vive no `dentherm` (modelo `DenTherm.Sce.Core.Domain.Entities.SceFraction`; UI `DenTherm.UI`).
 
 ### Classificacao Cross-Module
-
-- [x] Esta task toca APENAS 1 repositorio? -> Sim (`dentherm`)
-- [ ] Esta task toca 2+ repositorios? -> Nao
-- [ ] Esta task depende de algo que NAO EXISTE noutro modulo? -> Nao
+- [x] Toca APENAS 1 repositorio (`dentherm`). Nao depende de algo inexistente noutro modulo.
 
 ---
 
@@ -167,6 +176,11 @@ Nenhuma. Tudo vive no `dentherm`:
 - [x] Nao generaliza prematuramente (sem espacos/divisoes)
 - [x] Nao mistura UI + logica dominio — dominio ja existe, task e puramente UI + binding
 
+### Verificacao RF ↔ CA (bidirecional)
+- [x] Todo o RF referencia >=1 CA do request (`Satisfaz:`) e todo o CA do request mapeia para um RF (CA-01..06 cobertos)
+- [x] Todo o CA tem linha **Prova** executavel (sem Prova = CA vago -> BLOCK)
+- [x] NF que bloqueiam expressos como CA, nao em prosa (aqui nenhum NF bloqueia; RNF-01/02 sao desejaveis, declarados como tal)
+
 ### Classes/Services Existentes Relacionados
 
 | Classe/Service | Localizacao | Relacao | Reutilizar? |
@@ -186,7 +200,7 @@ Nenhuma. Tudo vive no `dentherm`:
 
 ## Questoes em Aberto
 
-- [x] ~~Implementar antes ou depois de B3?~~ Independente — carrega fracao unica do projecto.
+- [x] ~~Implementar antes ou depois de B3?~~ Independente — carrega fracao unica do projeto.
 
 ---
 
@@ -194,15 +208,15 @@ Nenhuma. Tudo vive no `dentherm`:
 
 | Data | Autor | Alteracao |
 |------|-------|-----------|
-| 2026-02-10 | Claude (SDD) | Criacao — reclassificacao [CORE]->[THERMAL], auditoria de codigo, SPECIFIED |
+| 2026-02-10 | Claude (SDD) | Criacao — reclassificacao [CORE]->[THERMAL], auditoria de codigo, RF<->CA, SPECIFIED |
 
 <!--
-EXEMPLO: Esta e uma spec real da task C2-areas-volumes do DenTherm.
+EXEMPLO: spec real da task C2-areas-volumes do DenTherm, no formato RF <-> CA.
 Pontos chave a notar:
 1. Auditoria do codigo existente (o que JA existe vs o que falta)
 2. Reclassificacao justificada (CORE -> THERMAL)
-3. Criterios de aceitacao em formato Given/When/Then
-4. Edge cases concretos com comportamento esperado
-5. Fora de scope explicito
-6. Quality gate preenchido com decisoes de complexidade
+3. RF <-> CA bidirecional: cada RF diz que CA satisfaz; cada CA do request tem um RF. Sem RF orfao, sem CA orfao.
+4. Cada CA carrega a linha Prova do request (teste auto / oraculo / benchmark / smoke) — e o que o /sdd-check executa.
+5. Edge cases concretos; NF que NAO bloqueiam ficam como RNF (se bloqueassem, virariam CA).
+6. Lembrete de calculo regulado (nao-regressao + tolerancia zero) para specs THERMAL de calculo.
 -->

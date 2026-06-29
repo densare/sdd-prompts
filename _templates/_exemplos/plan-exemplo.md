@@ -10,14 +10,15 @@
 
 ## Auditoria (Passo 0)
 
-| Requisito | Estado | Evidencia |
-|-----------|--------|-----------|
-| RF-01: Campos Ap, Ag, pe-direito, V | NAO INICIADO | SceFraction tem propriedades, mas nenhum ViewModel/View existe |
-| RF-02: Calculo automatico V = Ap x pe | NAO INICIADO | SceFraction.GetAverageHeight() existe (inverso), mas sem UI |
-| RF-03: Persistencia | PARCIAL | SceFraction persiste via projecto, mas sem binding de UI |
-| RF-04: Integracao motor calculo | DONE | GeometricProperties ja le de SceFraction |
+| Requisito | CA | Estado | Evidencia |
+|-----------|----|--------|-----------|
+| RF-01: Campos Ap, Ag, pe-direito, V | CA-01 | NAO INICIADO | SceFraction tem propriedades, mas nenhum ViewModel/View existe |
+| RF-02: Calculo automatico V <-> pe | CA-02, CA-03 | NAO INICIADO | SceFraction.GetAverageHeight() existe (inverso), mas sem UI |
+| RF-03: Validacao Ag >= Ap | CA-04 | NAO INICIADO | SceFraction.IsValid() existe, mas sem feedback de UI |
+| RF-04: Persistencia | CA-05 | PARCIAL | SceFraction persiste via projecto, mas sem binding de UI |
+| RF-05: Integracao motor calculo | CA-06 | DONE | GeometricProperties ja le de SceFraction |
 
-**Resultado**: NAO INICIADO (RF-01/02 sao o core da task). RF-04 nao precisa de trabalho.
+**Resultado**: NAO INICIADO (RF-01/02/03 sao o core da task). RF-05 nao precisa de trabalho.
 
 ---
 
@@ -173,42 +174,57 @@ DenThermUIProvider (Presentation - MODIFICAR)
 
 ---
 
-### Passo 4: Testes
-**Objetivo**: Validar logica de recalculo e validacao.
+### Passo 4: Testes (provas dos CA)
+**Objetivo**: Materializar a linha `Prova:` de cada CA. As provas automaticas correm em CI; a prova de smoke (CA-01) e apresentada ao operador no `/sdd-check`.
 
-**Acoes**:
-1. [ ] Teste: Ap=100, pe=2.7 -> V=270
-2. [ ] Teste: Ap=100, V=300 (manual) -> pe=3.0
-3. [ ] Teste: Alterar Ap com pe fixo -> V recalcula
-4. [ ] Teste: Ap=0 -> V nao recalcula
-5. [ ] Teste: pe fora de range -> erro
-6. [ ] Teste: Ag < Ap -> erro
-7. [ ] Teste: LoadFrom carrega correctamente
-8. [ ] Teste: WriteTo escreve correctamente
+**Acoes** (cada uma e a Prova de um CA da spec):
+1. [ ] CA-02: Ap=100, pe=2,7 -> V=270,0
+2. [ ] CA-03: Ap=100, V=300 (manual) -> pe=3,0
+3. [ ] CA-04: Ag=80 com Ap=100 -> erro, valor recusado
+4. [ ] CA-05: round-trip guardar->ler preserva Ap=100, V=270
+5. [ ] CA-06: GeometricProperties recebe Net=100 / Gross=120 / Volume=270
+6. [ ] (EC) Alterar Ap com pe fixo -> V recalcula · Ap=0 -> V nao recalcula · pe fora de range -> erro
+7. [ ] (suporte) LoadFrom carrega · WriteTo escreve
+8. [ ] CA-01 = **smoke manual** (ver "Smoke manual" abaixo) — nao tem prova automatica; verifica-se a correr a app
 
 **Ficheiros**:
 - `tests/DenTherm.UI.Tests/ViewModels/FractionDataPanelViewModelTests.cs`
+- `tests/DenTherm.UI.Tests/FractionPersistenceTests.cs` (CA-05)
+- `tests/DenTherm.Sce.Core.Tests/FractionEngineIntegrationTests.cs` (CA-06)
 
 **Validacao**:
-- [ ] 8 testes passam
+- [ ] Toda a linha `Prova:` automatica da spec tem teste correspondente (CA-02..06)
+- [ ] CA-01 (smoke) listado na seccao "Smoke manual"
 - [ ] Testes verificam OUTPUT, nao estado interno
 
 ---
 
 ## Testes
 
-### Testes Unitarios (xUnit + FluentAssertions)
+> **Os testes derivam da linha `Prova:` de cada CA da spec.** Cada CA `[bloqueia-close]` tem aqui a sua prova planeada (auto ou smoke). E esta lista que o `/sdd-check` corre e o `/sdd-close` exige.
 
-| Teste | Descricao | Ficheiro |
-|-------|-----------|----------|
-| `RecalculateVolume_WhenApAndCeilingHeightSet` | V = Ap x pe | FractionDataPanelViewModelTests.cs |
-| `RecalculateCeilingHeight_WhenVolumeSetManually` | pe = V / Ap | Mesmo |
-| `RecalculateVolume_WhenApChanges` | V ajusta com pe fixo | Mesmo |
-| `NoRecalculation_WhenApIsZero` | V preservado | Mesmo |
-| `Validation_CeilingHeightOutOfRange` | Erro pe fora [1.5, 10.0] | Mesmo |
-| `Validation_GrossAreaLessThanUseful` | Erro Ag < Ap | Mesmo |
-| `LoadFrom_PopulatesViewModelFromFraction` | Binding domain -> VM | Mesmo |
-| `WriteTo_UpdatesFractionFromViewModel` | Binding VM -> domain | Mesmo |
+### Testes Unitarios / Integracao (xUnit + FluentAssertions) — provas automaticas
+
+| Teste | CA | Descricao | Ficheiro |
+|-------|----|-----------|----------|
+| `RecalculateVolume_WhenApAndCeilingHeightSet` | CA-02 | (Ap=100, pe=2,7) -> V=270,0 | FractionDataPanelViewModelTests.cs |
+| `RecalculateCeilingHeight_WhenVolumeSetManually` | CA-03 | (Ap=100, V=300) -> pe=3,0 | Mesmo |
+| `Validation_GrossAreaLessThanUseful` | CA-04 | (Ap=100, Ag=80) -> erro, valor recusado | Mesmo |
+| `RoundTrip_PersistsAreasAndVolume` | CA-05 | guardar -> ler preserva Ap=100, V=270 | FractionPersistenceTests.cs |
+| `GeometricProperties_FedFromFraction` | CA-06 | Ap/Ag/V -> Net/Gross/Volume no motor | FractionEngineIntegrationTests.cs |
+| `RecalculateVolume_WhenApChanges` | (RF-02 EC) | V ajusta com pe fixo | FractionDataPanelViewModelTests.cs |
+| `NoRecalculation_WhenApIsZero` | (EC-02) | V preservado | Mesmo |
+| `Validation_CeilingHeightOutOfRange` | (EC-03) | Erro pe fora [1.5, 10.0] | Mesmo |
+| `LoadFrom_PopulatesViewModelFromFraction` | (suporte CA-01) | Binding domain -> VM | Mesmo |
+| `WriteTo_UpdatesFractionFromViewModel` | (suporte CA-05) | Binding VM -> domain | Mesmo |
+
+### Smoke manual (da linha `Prova:` dos CA) — comportamento observavel
+
+> So os CA cuja Prova e "smoke manual" (comportamento que so se ve a correr a app). O `/sdd-check` apresenta estes ao operador.
+
+| # | CA | Receita | PASS = |
+|---|----|---------|--------|
+| 1 | CA-01 | Abrir projeto-fixture com fracao (Ap=100, Ag=120, V=270) -> abrir painel de detalhe da fracao | Seccao "Areas e Volumes" mostra os 4 campos com 100 / 120 / 2,7 / 270 e as unidades (m2, m, m3) |
 
 ---
 
@@ -312,10 +328,12 @@ Nenhuma interface nova criada. (AP-01 OK)
 <!--
 EXEMPLO: Este e um plan real da task C2-areas-volumes do DenTherm.
 Pontos chave a notar:
-1. Auditoria (passo 0) verifica o que JA existe antes de planear
+1. Auditoria (passo 0) verifica o que JA existe antes de planear, com a coluna CA (RF<->CA)
 2. Analise do codigo existente com tabelas de pesquisa e decisoes
 3. Justificacao para cada ficheiro novo
 4. Verificacao de todos os 8 anti-patterns
 5. Estimativa em Fibonacci com breakdown por passo
 6. Notas de implementacao com gotchas concretas
+7. Os testes derivam da linha Prova: de cada CA da spec; o que e smoke manual (CA-01)
+   fica na seccao "Smoke manual" — e o que o /sdd-check apresenta e o /sdd-close exige.
 -->
