@@ -60,12 +60,36 @@ Show the project's `VALIDACAO.md` index. Summarize how many blocks are DRAFT vs 
 - [ ] Is there premature generalization? (AP-01, AP-03)
 - [ ] Is the block coherent with already APPROVED blocks?
 - [ ] Is terminology correct for the domain?
+- [ ] Is `risk: t1|t2|t3` explicitly declared, with evidence rather than inferred from absence?
+- [ ] Was the irreversibility modifier applied to the component that emits the durable artefact?
+- [ ] If risk was inherited or downgraded, is provenance/reason recorded and does it respect the `t2` floor for work touching the mechanism that made the capability `t1`?
+
+## Risk Validation (RT-01 — Mandatory)
+
+Validation MUST verify risk as part of the specification, not leave it to an execution-time default.
+
+| Tier | Binding criteria |
+|------|------------------|
+| `t1` | Cryptography; regulated calculation engines; schema migrations; fail-closed paths; multi-tenancy; billing; authentication/authorization; or content moderation. |
+| `t2` | New business logic or contracts between repositories/modules. This is the conservative default when uncertain; a `t2` chosen under uncertainty is `declared`, never `fallback`. |
+| `t3` | UI-only behavior, documentation, mechanical refactors, or tests that do not touch a `t1`/`t2` mechanism. |
+
+Validate these invariants:
+
+1. **Missing risk is invalid, not `t3`.** Use `t2` while uncertain. A downstream `fallback` value records absence of classification and MUST NOT dispense with scrutiny.
+2. **Irreversibility raises one tier.** Ask: _after a defect is detected, do all existing emitted copies disappear or get replaced by a redeploy?_ If not, raise `t3→t2` or `t2→t1`; `t1` stays `t1`. Raise the emitter, not all consumers. This does **not** apply to private re-emittable exports, previews, drafts, or files replaceable in the customer's own account. If uncertain whether the artefact is irreversible, do **not** apply this modifier — the base classification already fails upward, and making both axes fail upward recreates tier inflation.
+3. **Provenance remains auditable.** `declared` means confirmed for the concrete work; `inherited` means inherited from the capability; `fallback` means nothing was declared and the engine defaulted to `t3` — it is not a classification. A `t3` issue under a `t1` capability requires a reason in the increment contract and cannot fall below `t2` if it touches the mechanism that made the capability `t1`. Without that reason the carve is invalid; absence is never read as `t3`.
+4. **Execution only maintains or raises risk when the mechanism exists.** The Forge post-commit, pre-gate diff reclassifier may set a higher `effective_risk` for files outside the manifest, schema/persistent-format changes, auth/authz/crypto/PII, regulated paths, cross-repo changes, removed/ignored/weakened tests, new public interfaces, new dependencies, or excessive diff size. It MUST never lower the validated base tier. If a project's runtime does not implement this reclassifier, the declared tier is the only control — classify accordingly.
+
+If any invariant is missing or contradictory, keep the block DRAFT and record the exact correction required.
 
 ## Rules
 
 - If user changes something that affects other blocks: WARN
 - If user removes something: actually delete (don't comment out)
 - Never proceed to PLAN with DRAFT blocks
+- Never approve a block whose risk is absent or whose provenance is `fallback`. A conservative `t2` chosen under uncertainty is a declared classification and is approvable.
+- Do not treat downstream diff reclassification as permission to under-classify here; it is a fail-safe that only raises risk.
 
 ## VALIDACAO.md Format
 
@@ -86,10 +110,10 @@ Show the project's `VALIDACAO.md` index. Summarize how many blocks are DRAFT vs 
 
 ## [Spec: 0X_SpecName]
 
-| Block | State | Date | Notes |
-|-------|-------|------|-------|
-| [block name] | DRAFT | - | - |
-| [block name] | APPROVED | YYYY-MM-DD | [notes] |
+| Block | State | Risk | Provenance | Date | Notes |
+|-------|-------|------|------------|------|-------|
+| [block name] | DRAFT | t1\|t2\|t3 | declared\|inherited\|fallback | - | - |
+| [block name] | APPROVED | t1\|t2\|t3 | declared\|inherited | YYYY-MM-DD | [notes] |
 ```
 
 ## Integration with SDD

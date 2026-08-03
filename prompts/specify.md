@@ -67,6 +67,7 @@ Search for the request file in `projectos/<project>/requests/` (in order):
    - Unconsidered edge cases
    - Technical dependencies
    - Cross-module dependencies
+   - The explicit risk tier and its provenance (see **Risk Classification** below)
 8. **DECLARE ENTRY-POINTS** (AP-09):
    - Is this feature observable by the user / external client (UI, HTTP route, message subscriber)?
    - If yes: enumerate ALL paths the user/client uses to reach the feature in the spec's "Entry-Points" section (menu item, nav node, keybinding, HTTP route, hx- attribute target, event subscriber). For each entry-point: type, location (file:line if known), and whether it already exists or must be created/modified.
@@ -90,8 +91,30 @@ Search for the request file in `projectos/<project>/requests/` (in order):
    - Entry-points enumerated for every user-observable RF? (AP-09)
    - Storage semantics declared for every persisted field? (AP-10)
    - Round-trip edge cases (EC-RT1..RT4) present or justifiably absent? (AP-10)
+   - Risk is explicitly declared, justified, and adjusted for irreversibility?
 11. **CLARIFY** with user if necessary
 12. **ASK** for confirmation to mark as SPECIFIED
+
+## Risk Classification (RT-01 — Mandatory)
+
+`/sdd-specify` declares the risk of the unit being specified. If one spec covers several components, use
+the highest tier among the components in scope; a consumer-only sub-spec does not inherit an
+irreversibility raise that belongs to a separate emitter. Absence is not low risk.
+
+| Tier | Use when the work touches |
+|------|---------------------------|
+| `t1` | Cryptography; regulated calculation engines; schema migrations; fail-closed paths; multi-tenancy; billing; authentication/authorization; or content moderation. |
+| `t2` | New business logic or contracts between repositories/modules. This is the conservative default when uncertain; a `t2` chosen under uncertainty is `declared`, never `fallback`. |
+| `t3` | UI-only behavior, documentation, mechanical refactors, or tests, provided no `t1`/`t2` mechanism is touched. |
+
+Apply all of these rules:
+
+1. **Declare, never infer `t3`.** If classification cannot be established from evidence, use `t2`. Record the classification as declared work; a downstream default/fallback is absence of classification and MUST NOT reduce scrutiny.
+2. **Apply the irreversibility modifier.** Ask: _if a defect is found after this artefact is emitted, do all existing copies disappear or get replaced by a redeploy?_ If **no**, raise the tier by one step (`t3→t2`, `t2→t1`; `t1` stays `t1`). Raise the component that **emits** the durable artefact, not every consumer that merely uses it. This does **not** apply to private re-emittable exports, previews, drafts, or files replaceable in the customer's own account. If uncertain whether the artefact is irreversible, do **not** apply this modifier — the base classification already fails upward, and making both axes fail upward recreates tier inflation.
+3. **Persist the source.** The spec header MUST carry `Risco: t1|t2|t3` and `Proveniencia: declared|inherited`. In cap-first projects, also write `risk: t1|t2|t3` in the capability metadata and preserve provenance for the carve (`declared` when confirmed for the concrete issue, `inherited` when only inherited from the capability). `fallback` means nothing was declared and the engine defaulted to `t3`; it is absence of classification and never qualifies for reduced scrutiny.
+4. **Runtime can only raise risk when the mechanism exists.** The Forge diff reclassifier runs post-commit and pre-gate: files outside the manifest, new schema/persistent formats, auth/authz/crypto/PII, regulated paths, cross-repo changes, removed, ignored or weakened tests, new public interfaces, new dependencies, or an oversized diff raise `effective_risk`. It MUST never lower the declared tier. If a project's runtime does not implement this reclassifier, the declared tier is the only control — classify accordingly rather than assuming a later safety net.
+
+For a capability whose tier is higher than a concrete issue's apparent work, do not silently downgrade it. A later carve may assign a lower issue tier only with a reason declared in the increment contract, and never below `t2` when the issue touches the mechanism that made the capability `t1`. Without that reason the carve is invalid; absence is never read as `t3`.
 
 ## Rules
 
@@ -104,6 +127,8 @@ Search for the request file in `projectos/<project>/requests/` (in order):
 - If feature is user-observable but `Entry-Points` section is empty: BLOCK (AP-09)
 - If feature persists state but `Storage Semantics` section is empty: BLOCK (AP-10)
 - The navigable smoke (1 line under Entry-Points) IS the seed of the manual smoke that `/sdd-check` will demand. Write it as if the reviewer will execute it without reading code.
+- If the spec's risk tier or provenance is absent: BLOCK — do NOT mark SPECIFIED. Never treat missing risk as `t3`; use a declared `t2` while uncertain.
+- Risk declared during specification is the **default** for issues carved from it, not a floor. A carve may lower an issue's tier only with a reason declared in the increment contract, and never below `t2` when the issue touches the mechanism that made the capability `t1`. The post-diff runtime reclassifier may only maintain or raise.
 
 ## Output
 

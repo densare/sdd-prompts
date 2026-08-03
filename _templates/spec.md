@@ -3,6 +3,8 @@
 > **Estado**: DRAFT | SPECIFIED
 > **Classificacao**: [PLATFORM] | [APP] | [ADMIN] | [SDK]
 > **Repositorio**: densare-platform | densare-apps | densare-admin | densare-sdk-dotnet
+> **Risco**: t1 | t2 | t3
+> **Proveniencia do risco**: declared | inherited
 > **Criado**: [DATA]
 
 ---
