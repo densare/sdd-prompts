@@ -14,6 +14,7 @@ Read or have access to:
 - `sdd/QUALITY_GATES.md` — mandatory checks (section Gate 2: PLAN)
 - `sdd/_templates/plan.md` — plan template
 - `AGENTS.md` — project rules, code structure, conventions, layer architecture
+- `<code-repo>/docs/LEARNINGS.md` (if present) — **curated cross-issue learnings**: recurring traps, domain rules, and red-zone hotspots distilled from past `end-issue` reports. Apply the entries relevant to this issue.
 
 ## Arguments
 
@@ -116,6 +117,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    - Principle: **"zero sem-quando"** alongside **"zero órfãos"** — no issue without a timing. Governance source: `guidelines/METODOLOGIA_ARTEFACTOS.md §3.ter`.
 
 1. **READ** `sdd/ANTI_PATTERNS.md` — keep the anti-patterns in mind
+1b. **READ** `<code-repo>/docs/LEARNINGS.md` (if present) — scan for entries whose area/tags match this issue (domain, files touched, test type). In `plan.md`, note which learnings apply and how the plan honors each (e.g., "LEARNINGS persistence round-trip → plan adds a save→reopen test"; "LEARNINGS ADENE ToXxxCode wiring → plan asserts the value in emitted XML"). If none apply, state that explicitly.
 2. **READ** complete spec.md
 3. **VALIDATE CLASSIFICATION**: Confirm target repository
 4. **INVESTIGATE EXISTING CODE** (Search Before Create):

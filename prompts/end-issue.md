@@ -120,12 +120,24 @@ The CHECK phase already verified build + the FULL test suite green on this branc
 
 Fix any errors until build + tests pass, then continue.
 
+### 1b. Distill a learning for LEARNINGS.md (or none)
+
+The `end-issue-[ISSUE-ID].md` report is a throwaway scratchpad. Its **durable** value — a recurring trap, a domain rule, or a red-zone hotspot that a *future, unrelated* issue would need to know — belongs in `docs/LEARNINGS.md`, which `sdd-plan` loads as context.
+
+Read `docs/LEARNINGS.md` (its header defines the inclusion criteria). Then:
+
+- **If a durable, generalizable, non-obvious learning emerged from this issue**, capture it. First check whether an existing entry already covers it — if so, just append this issue to that entry's `Seen in` list (prefer this over a near-duplicate). Otherwise add ONE new entry under the relevant `##` area, in the file's exact format (`### <area>: <rule>` + **Why** + **How to apply** + **Seen in** + tags).
+- **If nothing qualifies, do nothing.** Most bug-fixes and pure refactors will NOT qualify — that is expected and correct. Do not manufacture an entry.
+
+If you edit `docs/LEARNINGS.md`, it rides in this issue's commit/PR (next step) and is reviewed there.
+
 ### 2. Stage files
 
 Stage only files relevant to the issue (DO NOT use `git add -A`):
 ```bash
 git add src/path/to/changed/files
 git add tests/path/to/test/files
+git add docs/LEARNINGS.md   # only if step 1b added a learning
 ```
 
 **CRITICAL — No files left behind:** After staging, run `git status` and check for unstaged/untracked files. If ANY exist, **ASK the user** whether they should be included in the commit or intentionally excluded. NEVER silently leave files behind.
@@ -201,6 +213,10 @@ After merge, clean up:
 # Remove review report (transient artifact, not committed)
 rm -f check-report.md
 
+# Remove the end-issue report — it is a throwaway scratchpad; its durable content
+# was distilled into docs/LEARNINGS.md in step 1b (or nothing qualified).
+rm -f end-issue-[ISSUE-ID].md
+
 # Delete feature branch (local and remote)
 git checkout main && git pull origin main
 git branch -d feature/[ISSUE-ID]
@@ -232,7 +248,7 @@ Before reporting completion to the user, confirm ALL of these:
 - [ ] Feature branch cleaned up
 - [ ] `check-report.md` removed
 - [ ] STATUS.md updated (if planning repo accessible)
-- [ ] Report `end-issue-[ISSUE-ID].md` includes the **PR URL**
+- [ ] Learning distilled into `docs/LEARNINGS.md` (or explicitly none), and raw `end-issue-[ISSUE-ID].md` deleted
 
 If ANY item is unchecked, do NOT report completion — go back and complete it.
 
@@ -248,7 +264,7 @@ Report to the user in this format:
   PR:      [CLICKABLE URL]
   Linear:  Done
 
-Report: end-issue-[ISSUE-ID].md
+Learning: [appended to docs/LEARNINGS.md | none — nothing durable qualified]
 ```
 
 The **PR URL** in the output is MANDATORY. If missing, the end-issue is incomplete.
