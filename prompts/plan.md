@@ -139,6 +139,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    - **Entry-points wired** (AP-09): for EACH entry-point declared in spec, a corresponding file is in "Files to modify" (Navigation.cs, cmd/<svc>/main.go router setup, layout templ, MenuProvider, etc.). If spec declares entry-points but plan does not modify any wiring file → BLOCK.
    - **Storage helpers centralized** (AP-10): for EACH persisted field with 2+ write paths in spec, a centralized helper is planned (or referenced if already exists). The plan names which helper and the conversion it applies.
    - **Last implementation step = wire + navigable smoke**: the implementation order MUST end with a step explicitly named "wire entry-points and run navigable smoke" (or equivalent). This is the seam that catches AP-09 before merge. If the ordered steps end at "create file X" or "implement service Y" without a final wire+smoke step → BLOCK.
+   - **No issue-ID-named files planned** (AP-11): none of the file names in "Files to modify"/"Files to create" are prefixed or named after this (or any) issue/ticket ID — name after what the file does. If the plan proposes a name like `<ISSUE-ID>...`, BLOCK.
 8. **ESTIMATE** using Fibonacci scale:
    - 1 = ~30min | 2 = ~1h | 3 = ~2h | 5 = ~4h | 8 = ~8h
    - **Mode A:** estimate each created issue.

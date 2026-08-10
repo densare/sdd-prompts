@@ -12,7 +12,7 @@ Act as an **Implementer** applying corrections from a code review. Read the revi
 
 You MUST actually open and read each file below. "Having access to" is NOT enough — you must read the content into your context. Failure to read these files leads to repeated review rejections and wrong fixes.
 
-1. **`sdd/ANTI_PATTERNS.md`** — Anti-patterns to avoid (AP-01 through AP-08). Contains LOC limits, abstraction rules, and self-check questions.
+1. **`sdd/ANTI_PATTERNS.md`** — Anti-patterns to avoid (AP-01 through AP-11). Contains LOC limits, abstraction rules, and self-check questions.
 2. **`sdd/QUALITY_GATES.md`** — Mandatory checks (section Gate 3: IMPLEMENT). Contains the quality criteria your fix will be re-reviewed against.
 3. **`AGENTS.md`** — Project rules, conventions, build/test commands.
 

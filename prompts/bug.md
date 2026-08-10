@@ -80,7 +80,7 @@ Determine working context:
    - **Complex** (3+ files, redesign needed): plan in detail
 2. **LIST** files to change with description of each change
 3. **VERIFY** the fix plan against anti-patterns:
-   - Fix doesn't introduce AP-01 to AP-08?
+   - Fix doesn't introduce AP-01 to AP-11?
    - Fix in the correct layer?
    - Fix within LOC limits?
 4. **ESTIMATE** in Fibonacci points (1-5 typical for bugs)
@@ -138,7 +138,7 @@ Write `bug-report.md` in the **root of the code repository** with the investigat
 2. [step 2]
 
 ### Anti-Pattern Check
-- [ ] Fix doesn't introduce AP-01 to AP-08
+- [ ] Fix doesn't introduce AP-01 to AP-11
 - [ ] Fix in correct layer (AP-06)
 - [ ] Fix within LOC limits (AP-05)
 

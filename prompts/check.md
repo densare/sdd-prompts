@@ -94,6 +94,10 @@ How to ensure independence:
 - [ ] Zero empty stubs or placeholders?
 - [ ] Everything created is actually used?
 
+### Naming (AP-11)
+- [ ] No file/class/method/test named after this (or any) issue/ticket ID?
+- [ ] Names describe what the code does, not the ticket that motivated it?
+
 ### Complexity Limits (AP-05)
 - [ ] No file > 600 LOC (red zone)?
 - [ ] No method/function > 55 LOC (red zone)?
@@ -285,6 +289,7 @@ Markdown tables collapse multi-line cells in most renderers (terminal CLIs, GitH
 | AP-06 | Wrong layer | PASS / FAIL | |
 | AP-07 | Dead code | PASS / FAIL | |
 | AP-08 | Multiple patterns | PASS / FAIL | |
+| AP-11 | Issue-ID-named code | PASS / FAIL | |
 
 ### Build and Tests
 

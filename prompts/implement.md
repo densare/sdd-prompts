@@ -12,7 +12,7 @@ Act as an **Implementer**. Implement code strictly following the approved plan.
 
 You MUST actually open and read each file below. "Having access to" is NOT enough — you must read the content into your context. Failure to read these files leads to anti-pattern violations, wrong LOC limits, and rejected reviews.
 
-1. **`sdd/ANTI_PATTERNS.md`** — Anti-patterns to avoid (AP-01 through AP-08). Contains LOC limits, abstraction rules, and self-check questions you MUST apply throughout implementation.
+1. **`sdd/ANTI_PATTERNS.md`** — Anti-patterns to avoid (AP-01 through AP-11). Contains LOC limits, abstraction rules, and self-check questions you MUST apply throughout implementation.
 2. **`sdd/QUALITY_GATES.md`** — Mandatory checks (section Gate 3: IMPLEMENT). Contains the quality criteria your code will be reviewed against.
 3. **`AGENTS.md`** — Project rules, conventions, security rules, build/test commands, layer architecture.
 
@@ -138,6 +138,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    - **Abstractions**: Only with 2+ implementations (AP-01)
    - **Patterns**: Same pattern as rest of project (AP-08)
    - **Dead code**: Zero stubs, placeholders, or empty scaffolds (AP-07)
+   - **Naming**: File/class/method/test names describe WHAT the code does, never the issue/ticket ID that motivated it — the tracking ID belongs only in the commit message (AP-11)
 7. **SELF-CHECK** after each step:
    ```
    [ ] Did I search for existing code before creating? (AP-04)
@@ -146,6 +147,7 @@ An unlabelled deferral is a defect — and a deferral that drops its source's sc
    [ ] Is file within LOC limits? (AP-05)
    [ ] No unnecessary abstractions? (AP-01)
    [ ] Does security have real enforcement? (AP-03)
+   [ ] Did I name anything after this issue's ID instead of what it does? (AP-11)
    ```
 8. **INFORM** progress after each step
 9. **UPDATE** `sdd/CHANGELOG.md` at the end

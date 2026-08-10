@@ -531,6 +531,42 @@ Padroes a definir no arranque do projecto:
 
 ---
 
+## AP-11: Codigo Nomeado por ID de Issue/Ticket
+
+### Problema
+
+Nomear um ficheiro, classe, metodo ou teste com o ID do issue/ticket que motivou a mudanca (`Dt695ProcessEngineVsLegacyTests.cs`, `DT846Handler`, `PLT-123Migration.go`) em vez de um nome que descreve o que o codigo FAZ.
+
+### Exemplo Real (DenTherm)
+
+```
+Dt966AssumptionNeutralitySmokeTests.cs
+Dt604NanInfinityGuardsTests.cs
+Dt989GlazedSolutionReferenceNormalizationTests.cs
+Dt989NoPerFractionSolutionCatalogArchTests.cs
+```
+
+**Resultado**: o nome nao diz nada sobre o comportamento testado/implementado a quem le o codigo sem o contexto do ticket. O sistema de tracking (Linear, GitHub Issues, ou outro) e uma ferramenta externa e mutavel — o codigo sobrevive-lhe. Um leitor futuro (humano ou agente) sem acesso ao ticket, ou depois de o ticket mudar de sistema, fica sem pista nenhuma do que `Dt966...` significa.
+
+### Porque Acontece com AI
+
+O agente le o `[ISSUE-ID]` no inicio do prompt/tarefa e usa-o como prefixo natural e unico para o novo ficheiro/classe — parece organizado e rastreavel. Sem uma regra explicita a proibir, e o padrao "obvio" a seguir. Piora em efeito de bola de neve: assim que **um** ficheiro no repo segue este padrao, um agente a explorar o codigo para decidir a convencao de nomes copia-o como se fosse o estilo da casa — mesmo que a regra o proiba, a ausencia de reforco no prompt deixa o exemplo errado falar mais alto que a regra escrita noutro sitio.
+
+### Regra de Prevencao
+
+```
+Regra: NUNCA nomear codigo por um ID de tracking (issue/ticket/PR)
+
+1. Nome do ficheiro/classe/metodo/teste = o que o codigo FAZ, nunca "em que ticket foi motivado"
+   Exemplo: Dt695ProcessEngineVsLegacyTests.cs -> ProcessEngineVsLegacyGoldenTests.cs
+2. O ID do ticket e legitimo SO na mensagem de commit (`git log`) -- e historico, nao codigo
+3. Comentarios explicam a logica/regra de negocio, nunca "fix para o issue X"
+4. Se o repo ja tem ficheiros com este padrao, NAO copiar o exemplo -- a presenca de
+   violacoes existentes nao e defesa para criar mais uma
+```
+
+---
+
 ## Resumo: Perguntas de Auto-Verificacao
 
 Antes de QUALQUER implementacao, o agente deve responder:
@@ -547,6 +583,7 @@ Antes de QUALQUER implementacao, o agente deve responder:
 [ ] DEAD CODE: "Tudo o que criei e usado e funciona?"
 [ ] ENTRY-POINT: "O utilizador chega a esta feature sem ler codigo? Menu/nav/route declarado e wired?" (AP-09)
 [ ] STORAGE SEMANTICS: "Cada campo persistido tem forma canonica declarada e todos os write paths a respeitam?" (AP-10)
+[ ] NAMING: "O nome deste ficheiro/classe/teste descreve o que ele faz, ou e um ID de ticket?" (AP-11)
 ```
 
 ---
@@ -566,9 +603,11 @@ Antes de QUALQUER implementacao, o agente deve responder:
 | SQL parametrizado | Confiar nos parametros | Adicionar sanitizer SQL redundante |
 | Feature observavel pelo user | Declarar entry-point na spec + wire no plan + smoke navegavel no check | Implementar componente + assumir que "alguem ira ligar depois" (AP-09) |
 | Campo persistido | Declarar forma canonica na spec + helper centralizado + teste round-trip | Cada path escolhe formato no momento (AP-10) |
+| Nome de ficheiro/classe/teste | Nome que descreve o comportamento | Prefixo com o ID do issue/ticket (AP-11) |
 
 ---
 
 *Baseado na analise de CODE_REVIEW_ANALYSIS.md do DenStudio (2025) — 200+ ficheiros, 42.000+ LOC revistos.*
 *AP-09 e AP-10 adicionados em 2026-05 com base na cadeia DT-547..589 (DenTherm) e PLT-205/207/281 (Cloud).*
-*Densare SDD - Fevereiro 2026 (rev. Maio 2026)*
+*AP-11 adicionado em 2026-08-10: dezenas de ficheiros no DenTherm (Dt604, Dt966, Dt989...) ja violavam a regra de nomenclatura do DESENVOLVIMENTO.md sem que nenhum prompt SDD a reforcasse.*
+*Densare SDD - Fevereiro 2026 (rev. Agosto 2026)*
