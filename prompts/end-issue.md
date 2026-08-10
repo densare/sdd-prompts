@@ -128,7 +128,9 @@ git add src/path/to/changed/files
 git add tests/path/to/test/files
 ```
 
-**CRITICAL — No files left behind:** After staging, run `git status` and check for unstaged/untracked files. If ANY exist, **ASK the user** whether they should be included in the commit or intentionally excluded. NEVER silently leave files behind.
+**Pipeline artifacts are LOCAL-ONLY — never stage them.** `.pipeline/`, `check-report.md`, `smokes*.md`, `end-issue-*.md`, and `CHANGELOG.md` churn are working-tree scratch files the orchestrator reads in place. **NEVER `git add`** them to the feature branch — committing them causes rebase conflicts, dirty-tree blocks, and untracked-file collisions on later phases (check, fix, re-merge rounds). After extracting anything durable from `end-issue-*.md`, **delete** it. Ensure these paths are in `.gitignore` (add them if missing).
+
+**No SOURCE files left behind:** after staging, run `git status` and check for unstaged/untracked **source** files (under `src/`, `tests/`, real `docs/` — i.e. excluding the local-only artifacts above). If a genuine source change is unstaged, stage it; never silently leave source behind. In non-interactive/headless mode do NOT block to ask — exclude unknown non-source files by default.
 
 ### 3. Commit
 
